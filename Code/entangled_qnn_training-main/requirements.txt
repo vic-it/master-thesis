@@ -1,0 +1,6 @@
+matplotlib==3.5.2
+networkx==2.8.8
+numpy==1.24.1
+PennyLane==0.27.0
+scipy==1.10.1
+torch==2.0.0.dev20230116+cpu
