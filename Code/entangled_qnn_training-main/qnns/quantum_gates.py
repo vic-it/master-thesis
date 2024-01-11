@@ -83,7 +83,16 @@ def RZ(rz):
     z_exp = torch.exp(1j * rz)
     return one_top_left + z_exp * one_bottom_right
 
+#finish later https://docs.quantum.ibm.com/api/qiskit/qiskit.circuit.library.RGate
+def R_Gate(theta,phi):
+    a = np.cos(theta/2)
+    b = -1j*torch.exp(-1j * phi) * np.sqrt(2) + 0j
+    c = torch.exp(1j * rx) / np.sqrt(2) + 0j
+    d = torch.exp(1j * (rx + rz)) / np.sqrt(2) + 0j
+    out = torch.tensor([[a, b],[c, d]])
+    return out
 
+# basically U3 but one param is fixed to pi/2
 def U2(rx, rz):
     a = 1. / np.sqrt(2) + 0j
     b = -torch.exp(1j * rz) / np.sqrt(2) + 0j
