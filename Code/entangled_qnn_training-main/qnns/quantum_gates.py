@@ -84,11 +84,11 @@ def RZ(rz):
     return one_top_left + z_exp * one_bottom_right
 
 #finish later https://docs.quantum.ibm.com/api/qiskit/qiskit.circuit.library.RGate
-def R_Gate(theta,phi):
-    a = np.cos(theta/2)
-    b = -1j*torch.exp(-1j * phi) * np.sqrt(2) + 0j
-    c = torch.exp(1j * rx) / np.sqrt(2) + 0j
-    d = torch.exp(1j * (rx + rz)) / np.sqrt(2) + 0j
+def R(theta,phi):
+    a = torch.cos(theta/2) +0j
+    b = -1j*torch.exp(-1j * phi) * torch.sin(theta/2) + 0j
+    c = -1j*torch.exp(1j * phi) * torch.sin(theta/2) + 0j
+    d = torch.cos(theta/2) +0j
     out = torch.tensor([[a, b],[c, d]])
     return out
 

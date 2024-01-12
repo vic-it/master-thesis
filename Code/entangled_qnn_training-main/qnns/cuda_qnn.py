@@ -218,6 +218,57 @@ class CudaU2(CudaQNN):
         #     print(f"qnn is not unitary")
         return result
 
+class CudaR(CudaQNN):
+
+    def __init__(self, num_wires, num_layers: int, device='cpu'):
+        super(CudaR, self).__init__(num_wires, num_layers, device)
+        self.ent_layers = self.init_entanglement_layers()
+        self.matrix_size = (2**self.num_wires, 2**self.num_wires)
+
+    def init_entanglement_layers(self):
+        if self.num_wires > 1:
+            ent_layers = []
+            def ent_layer():
+                if self.num_wires > 1:
+                    for i in range(self.num_wires):
+                        c_wire = i
+                        t_wire = (i + 1) % self.num_wires
+                        qml.CNOT(wires=[c_wire, t_wire])
+            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+    def init_params(self):
+        depth = self.num_wires + 3
+        depth *= self.num_layers
+        std_dev = np.sqrt(1/depth)
+        # std_dev = np.pi
+        # 3 Parameters per qbit per layer, since we have a parameterised X, Y, Z rotation
+
+        params = np.random.normal(0, std_dev, (self.num_wires, self.num_layers, 3))
+        # return Variable(torch.tensor(params, device=self.device), requires_grad=True)
+        return torch.tensor(params, device=self.device, requires_grad=True)
+
+    def layer(self, layer_num):
+        result = qg.R(self.params[0, layer_num, 0], self.params[0, layer_num, 1])
+        for i in range(1, self.num_wires):
+            result = torch.kron(
+                result,
+                qg.R(self.params[i, layer_num, 0], self.params[i, layer_num, 1])
+            )
+        result.to(self.device)
+        if self.num_wires > 1:
+            result = torch.matmul(self.ent_layers, result)
+        return result
+
+    def qnn(self):
+        result = self.layer(0)
+        for j in range(1, self.num_layers):
+            # if not qg.is_unitary(result):
+            #     print(f"qnn with {j} layers is not unitary")
+            result = torch.matmul(self.layer(j), result)
+        # if not qg.is_unitary(result):
+        #     print(f"qnn is not unitary")
+        return result
+
 class CudaCircuit6(CudaQNN):
 
     def __init__(self, num_wires, num_layers: int, device='cpu'):
