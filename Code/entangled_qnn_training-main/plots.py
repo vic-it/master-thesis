@@ -1,4 +1,4 @@
-from vis_utils import *
+from utils_vis import *
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
