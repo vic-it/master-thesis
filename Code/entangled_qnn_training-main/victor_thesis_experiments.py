@@ -60,7 +60,7 @@ def run_experiment_on(
         print("IGSD (dir 1): ", igsd[0])
         print("IGSD (dir 2): ", igsd[1])
         print("---------")
-    # fourier stuff -> enable only 1 at a time
+    # plot fourier stuff (can only plot one at a time?)
     print("Frequency Domain for Plot", fourier_plot)
     if fourier_plot == 1:
         fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
@@ -79,7 +79,7 @@ def run_experiment_on(
         orqviz.fourier.plot_2D_fourier_result(
             fourier_result_ent, max_freq_x=10, max_freq_y=10
         )
-    # U3 scatter plots
+    # plot 3d scatter plots for U3 gate minimization
     loss_z_o_3d, points_z_o = generate_3D_loss_landscape_with_labels(
         num_ticks, z_o_inputs, unitary
     )
@@ -92,7 +92,7 @@ def run_experiment_on(
     plot_scatter_of_U3(loss_z_o_3d, points_z_o, num_ticks)
     plot_scatter_of_U3(loss_non_ent_3d, points_non_ent, num_ticks)
     plot_scatter_of_U3(loss_ent_3d, points_ent, num_ticks)
-    # plot loss landscapes
+    # plot basic 3d loss landscapes
     plot_3d_loss_landscape(loss_z_o, ansatz, f"{gate_name} (Zero-One, n = 2)")
     plot_3d_loss_landscape(
         loss_non_ent, ansatz, f"{gate_name} (Not Entangled, n = {num_data_points})"
@@ -100,14 +100,13 @@ def run_experiment_on(
     plot_3d_loss_landscape(
         loss_ent, ansatz, f"{gate_name} (Entangled, n = {num_data_points})"
     )
-    # with curvature coloring placeholder
+    # plot 3d loss landscapes with curvature coloring
     plot_3d_loss_landscape_curv(loss_z_o, ansatz, "scalar")
-    plot_3d_loss_landscape_curv(loss_z_o, ansatz, "grad")
+    #plot_3d_loss_landscape_curv(loss_z_o, ansatz, "grad")
     plot_3d_loss_landscape_curv(loss_non_ent, ansatz, "scalar")
-    plot_3d_loss_landscape_curv(loss_non_ent, ansatz, "grad")
+    #plot_3d_loss_landscape_curv(loss_non_ent, ansatz, "grad")
     plot_3d_loss_landscape_curv(loss_ent, ansatz, "scalar")
-    plot_3d_loss_landscape_curv(loss_ent, ansatz, "grad")
-
+    #plot_3d_loss_landscape_curv(loss_ent, ansatz, "grad")
 
 def run_hadamard():
     # EXP on Hadamard
@@ -191,4 +190,4 @@ def main():
 
 
 # run main() for all experiments
-main()
+# main()
