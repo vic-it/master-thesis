@@ -98,3 +98,32 @@ def generate_3D_loss_landscape_with_labels(grid_size, inputs, U):
     points.append(y_array)
     points.append(z_array)
     return landscape, points
+
+# gen 3D loss landscape for U3
+def generate_3D_loss_landscape(grid_size, inputs, U):
+    qnn = get_qnn("CudaPennylane", list(range(1)), 1, device="cpu")
+    landscape = []
+    lanscape_limit = 2 * math.pi
+    step_size = lanscape_limit / grid_size
+    x = inputs
+    expected_output = torch.matmul(U, x)
+    y_true = expected_output.conj()
+    for i in range(grid_size):
+        row_x= []
+        # start at 2pi so y axis label still fits (upwards scaling instead of downards)
+        arg_1 = i * step_size
+        for j in range(grid_size):
+            row_y = []
+            # start at 0 because x axis label direction is correct
+            arg_2 = lanscape_limit - j * step_size
+            for k in range(grid_size):
+                # maybe change direction?
+                arg_3 = k * step_size
+                qnn.params = torch.tensor(
+                    [[[arg_1, arg_2, arg_3]]], dtype=torch.float64, requires_grad=True
+                )
+                cost = cost_func(inputs, y_true, qnn, device="cpu")
+                row_y.append(cost.item())
+            row_x.append(row_y)
+        landscape.append(row_x)
+    return landscape

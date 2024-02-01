@@ -72,10 +72,11 @@ def get_scalar_curvature(landscape):
     return scalar_curvature
 
 
-# calculate Total Variation
+# calculate Total Variation (n-dim)
 def calc_total_variation(landscape):
     lanscape_limit = 2 * math.pi
-    step_size = lanscape_limit / len(landscape)
+    length = np.array(landscape).shape[0]
+    step_size = lanscape_limit / length
     gradients = np.gradient(np.array(landscape))
     total_variation = np.sum(np.absolute(gradients))
     # normalize by adjusting for step size
@@ -83,7 +84,7 @@ def calc_total_variation(landscape):
     return np.round(normalized_tv, 2)
 
 
-# calculate IGSD
+# calculate IGSD (n-dim)
 def calc_IGSD(landscape):
     gradients = np.gradient(np.array(landscape))
     # each array of the gradients encompasses the gradients for one dimension/direction/parameter
