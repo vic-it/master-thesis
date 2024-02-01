@@ -119,10 +119,29 @@ def get_fourier_landscape(inputs, U, qnn):
         n_steps_x=60,
         end_points_x=end_points,
     )
+    #previous fourier density calculations
+    print("different versions of calculating fourier density - not sure which one is the correct one?")
     fourier_density = round(
         np.linalg.norm(np.array(fourier_result.values), ord=1) ** 2
         / np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2,
         3,
     )
-    print("Fourier Density:", fourier_density)
+    print("FD1:", fourier_density)
+    fourier_density = round(
+        get_1_norm(fourier_result.values) ** 2
+        / np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2,
+        3,
+    )
+    print("FD2:", fourier_density)
     return fourier_result
+
+
+# calculate fourier densitiy (n-dim)
+def calc_fourier_density(landscape):
+    fourier_result = (np.fft.fftn(landscape, norm="forward"))
+    #fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
+    fourier_density = round(
+        get_1_norm(fourier_result) ** 2 / np.linalg.norm(np.array(fourier_result)) ** 2,
+        3,
+    )
+    return fourier_density

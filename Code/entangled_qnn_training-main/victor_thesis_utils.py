@@ -53,3 +53,6 @@ def print_datapoints(points, title):
         for j, point in enumerate(row):
             # idx = i * len(row) + j + 1
             print("", i, " - ", j, ":", point)
+
+def get_1_norm(arr):
+    return np.sum(np.absolute(np.array(arr)))

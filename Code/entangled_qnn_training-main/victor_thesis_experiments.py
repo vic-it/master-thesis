@@ -62,20 +62,21 @@ def run_experiment_on(
         print("---------")
     # plot fourier stuff (can only plot one at a time?)
     print("Frequency Domain for Plot", fourier_plot)
+    fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
+    print("FD3", calc_fourier_density(landscapes[0]))
+    fourier_result_non_ent = get_fourier_landscape(non_entangled_inputs, unitary, qnn)
+    print("FD3", calc_fourier_density(landscapes[1]))
+    fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
+    print("FD3", calc_fourier_density(landscapes[2]))
     if fourier_plot == 1:
-        fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
         orqviz.fourier.plot_2D_fourier_result(
             fourier_result_z_o, max_freq_x=10, max_freq_y=10
         )
     elif fourier_plot == 2:
-        fourier_result_non_ent = get_fourier_landscape(
-            non_entangled_inputs, unitary, qnn
-        )
         orqviz.fourier.plot_2D_fourier_result(
             fourier_result_non_ent, max_freq_x=10, max_freq_y=10
         )
     elif fourier_plot == 3:
-        fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
         orqviz.fourier.plot_2D_fourier_result(
             fourier_result_ent, max_freq_x=10, max_freq_y=10
         )
@@ -102,11 +103,12 @@ def run_experiment_on(
     )
     # plot 3d loss landscapes with curvature coloring
     plot_3d_loss_landscape_curv(loss_z_o, ansatz, "scalar")
-    #plot_3d_loss_landscape_curv(loss_z_o, ansatz, "grad")
+    # plot_3d_loss_landscape_curv(loss_z_o, ansatz, "grad")
     plot_3d_loss_landscape_curv(loss_non_ent, ansatz, "scalar")
-    #plot_3d_loss_landscape_curv(loss_non_ent, ansatz, "grad")
+    # plot_3d_loss_landscape_curv(loss_non_ent, ansatz, "grad")
     plot_3d_loss_landscape_curv(loss_ent, ansatz, "scalar")
-    #plot_3d_loss_landscape_curv(loss_ent, ansatz, "grad")
+    # plot_3d_loss_landscape_curv(loss_ent, ansatz, "grad")
+
 
 def run_hadamard():
     # EXP on Hadamard
