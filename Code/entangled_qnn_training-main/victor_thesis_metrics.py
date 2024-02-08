@@ -27,49 +27,93 @@ def get_grad_curv(landscape):
     return curv_mag
 
 
-# get scalar curvature
+# old 2d get scalar curvature
+# def get_scalar_curvature_old(landscape):
+#     grad_xx_xy_yx_yy = []
+#     scalar_curvature = []
+#     gradients = np.array(np.gradient(np.array(landscape)))
+#     # maybe add gradients? not sure
+#     for gradient in gradients:
+#         second_grads = np.array(np.gradient(np.array(gradient)))
+#         for second_grad in second_grads:
+#             grad_xx_xy_yx_yy.append(second_grad)
+#     # calculate scalar curvature point by point
+#     for x_id in range(len(landscape)):
+#         row = []
+#         for y_id in range(len(landscape)):
+#             # hessian for point with entries: [d_xx, d_xy][d_yx, d_yy]
+#             point_hessian = [
+#                 [grad_xx_xy_yx_yy[0][x_id][y_id], grad_xx_xy_yx_yy[1][x_id][y_id]],
+#                 [grad_xx_xy_yx_yy[2][x_id][y_id], grad_xx_xy_yx_yy[3][x_id][y_id]],
+#             ]
+#             # gradients as 2 entry vector (x dir, y dir)
+#             gradient = np.array([gradients[0][x_id][y_id], gradients[1][x_id][y_id]])
+#             # take euclidean norm
+#             beta = 1 / (1 + np.linalg.norm(gradient) ** 2)
+#             left_term = beta * (
+#                 np.trace(point_hessian) ** 2
+#                 - np.trace(np.matmul(point_hessian, point_hessian))
+#             )
+#             right_inner = np.matmul(point_hessian, point_hessian) - np.trace(
+#                 point_hessian
+#             ) * np.array(point_hessian)
+#             # order of matmul with gradient does not matter
+#             right_term = (
+#                 2
+#                 * (beta**2)
+#                 * (np.matmul(np.matmul(gradient.T, right_inner), gradient))
+#             )
+#             point_curv = left_term + right_term
+#             # print(point_curv)
+#             # maybe sum, maybe not? point curv is 2 entry vector
+#             row.append(point_curv)
+#         scalar_curvature.append(row)
+#         # output absolute and root to compare visually to grad curvature
+#     return scalar_curvature
+
+# n-dimensional - das war ein schmerz von hand auf n-dimensionen zu generalisieren...
 def get_scalar_curvature(landscape):
-    grad_xx_xy_yx_yy = []
-    scalar_curvature = []
-    gradients = np.array(np.gradient(np.array(landscape)))
-    # maybe add gradients? not sure
-    for gradient in gradients:
-        second_grads = np.array(np.gradient(np.array(gradient)))
-        for second_grad in second_grads:
-            grad_xx_xy_yx_yy.append(second_grad)
-    # calculate scalar curvature point by point
-    for x_id in range(len(landscape)):
-        row = []
-        for y_id in range(len(landscape)):
-            # hessian for point with entries: [d_xx, d_xy][d_yx, d_yy]
-            point_hessian = [
-                [grad_xx_xy_yx_yy[0][x_id][y_id], grad_xx_xy_yx_yy[1][x_id][y_id]],
-                [grad_xx_xy_yx_yy[2][x_id][y_id], grad_xx_xy_yx_yy[3][x_id][y_id]],
-            ]
-            # gradients as 2 entry vector (x dir, y dir)
-            gradient = np.array([gradients[1][x_id][y_id], gradients[0][x_id][y_id]])
-            # take euclidean norm
-            beta = 1 / (1 + np.linalg.norm(gradient) ** 2)
-            left_term = beta * (
-                np.trace(point_hessian) ** 2
-                - np.trace(np.matmul(point_hessian, point_hessian))
-            )
-            right_inner = np.matmul(point_hessian, point_hessian) - np.trace(
-                point_hessian
-            ) * np.array(point_hessian)
-            # order of matmul with gradient does not matter
-            right_term = (
-                2
-                * (beta**2)
-                * (np.matmul(np.matmul(gradient.T, right_inner), gradient))
-            )
-            point_curv = left_term + right_term
-            # print(point_curv)
-            # maybe sum, maybe not? point curv is 2 entry vector
-            row.append(point_curv)
-        scalar_curvature.append(row)
-        # output absolute and root to compare visually to grad curvature
-    return scalar_curvature
+    landscape = np.array(landscape)
+    gradient_curvature = np.ndarray(landscape.shape)
+    dims = len(landscape.shape)
+    first_order_gradients = np.array(np.gradient(np.array(landscape)))
+    second_order_gradients = []
+    for grad in first_order_gradients:
+        # should go like e.g. xx, xy, xz, yx, yy, yz, zx, zy, zz for 3d
+        temp = np.array(np.gradient(np.array(grad)))
+        for arr in temp:
+            second_order_gradients.append(arr)
+    second_order_gradients = np.array(second_order_gradients)
+    # iterate over all landscape entries where idx is the exact position in the array (i.e: idx = (11, 2, 9, 10) -> arr[11][2][9][10] for a 4param qnn)
+    for idx, _ in np.ndenumerate(landscape):
+        # generate dimsXdims hessian and dims sized vector of gradients for a specific point of the loss landscape
+        point_hessian = []
+        gradient_vector = []
+        for i in range(dims):
+            gradient_vector.append(first_order_gradients[i][idx])
+            row = []
+            for j in range(dims):
+                # append e.g. [[0],[1]],[[2],[3]] for 2d
+                row.append(second_order_gradients[i * dims + j][idx])
+            point_hessian.append(row)
+        point_hessian = np.array(point_hessian)
+        gradient_vector = np.array(gradient_vector)
+        # calculate scalar curvature from here
+        beta = 1 / (1 + np.linalg.norm(gradient_vector) ** 2)
+        left_term = beta * (
+            np.trace(point_hessian) ** 2
+            - np.trace(np.matmul(point_hessian, point_hessian))
+        )
+        right_inner = np.matmul(point_hessian, point_hessian) - np.trace(
+            point_hessian
+        ) * np.array(point_hessian)
+        # order of matmul with gradient does not matter
+        right_term = (
+            2 * (beta**2) * (np.matmul(np.matmul(gradient_vector.T, right_inner), gradient_vector))
+        )
+        point_curv = left_term + right_term
+        gradient_curvature[idx] = point_curv
+    return gradient_curvature
 
 
 # calculate Total Variation (n-dim)
@@ -119,8 +163,10 @@ def get_fourier_landscape(inputs, U, qnn):
         n_steps_x=60,
         end_points_x=end_points,
     )
-    #previous fourier density calculations
-    print("different versions of calculating fourier density - not sure which one is the correct one?")
+    # previous fourier density calculations
+    print(
+        "different versions of calculating fourier density - not sure which one is the correct one?"
+    )
     fourier_density = round(
         np.linalg.norm(np.array(fourier_result.values), ord=1) ** 2
         / np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2,
@@ -138,8 +184,8 @@ def get_fourier_landscape(inputs, U, qnn):
 
 # calculate fourier densitiy (n-dim)
 def calc_fourier_density(landscape):
-    fourier_result = (np.fft.fftn(landscape, norm="forward"))
-    #fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
+    fourier_result = np.fft.fftn(landscape, norm="forward")
+    # fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
     fourier_density = round(
         get_1_norm(fourier_result) ** 2 / np.linalg.norm(np.array(fourier_result)) ** 2,
         3,
