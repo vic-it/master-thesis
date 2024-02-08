@@ -12,67 +12,8 @@ from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
 
-# get grad curvature
-def get_grad_curv(landscape):
-    first_order_gradients = np.gradient(np.array(landscape))
-    second_order_gradients = []
-    for grad in first_order_gradients:
-        grads_of_grad = np.gradient(np.array(grad))
-        for sec_grad in grads_of_grad:
-            second_order_gradients.append(sec_grad)
-    magnitude_sum = 0
-    for g in second_order_gradients:
-        magnitude_sum += g**2
-    curv_mag = np.sqrt(magnitude_sum)
-    return curv_mag
-
-
-# old 2d get scalar curvature
-# def get_scalar_curvature_old(landscape):
-#     grad_xx_xy_yx_yy = []
-#     scalar_curvature = []
-#     gradients = np.array(np.gradient(np.array(landscape)))
-#     # maybe add gradients? not sure
-#     for gradient in gradients:
-#         second_grads = np.array(np.gradient(np.array(gradient)))
-#         for second_grad in second_grads:
-#             grad_xx_xy_yx_yy.append(second_grad)
-#     # calculate scalar curvature point by point
-#     for x_id in range(len(landscape)):
-#         row = []
-#         for y_id in range(len(landscape)):
-#             # hessian for point with entries: [d_xx, d_xy][d_yx, d_yy]
-#             point_hessian = [
-#                 [grad_xx_xy_yx_yy[0][x_id][y_id], grad_xx_xy_yx_yy[1][x_id][y_id]],
-#                 [grad_xx_xy_yx_yy[2][x_id][y_id], grad_xx_xy_yx_yy[3][x_id][y_id]],
-#             ]
-#             # gradients as 2 entry vector (x dir, y dir)
-#             gradient = np.array([gradients[0][x_id][y_id], gradients[1][x_id][y_id]])
-#             # take euclidean norm
-#             beta = 1 / (1 + np.linalg.norm(gradient) ** 2)
-#             left_term = beta * (
-#                 np.trace(point_hessian) ** 2
-#                 - np.trace(np.matmul(point_hessian, point_hessian))
-#             )
-#             right_inner = np.matmul(point_hessian, point_hessian) - np.trace(
-#                 point_hessian
-#             ) * np.array(point_hessian)
-#             # order of matmul with gradient does not matter
-#             right_term = (
-#                 2
-#                 * (beta**2)
-#                 * (np.matmul(np.matmul(gradient.T, right_inner), gradient))
-#             )
-#             point_curv = left_term + right_term
-#             # print(point_curv)
-#             # maybe sum, maybe not? point curv is 2 entry vector
-#             row.append(point_curv)
-#         scalar_curvature.append(row)
-#         # output absolute and root to compare visually to grad curvature
-#     return scalar_curvature
-
-# n-dimensional - das war ein schmerz von hand auf n-dimensionen zu generalisieren...
-def get_scalar_curvature(landscape):
+# n-dimensional - das war ein schmerz auf n-dimensionen zu generalisieren...
+def calc_scalar_curvature(landscape):
     landscape = np.array(landscape)
     gradient_curvature = np.ndarray(landscape.shape)
     dims = len(landscape.shape)
@@ -109,7 +50,9 @@ def get_scalar_curvature(landscape):
         ) * np.array(point_hessian)
         # order of matmul with gradient does not matter
         right_term = (
-            2 * (beta**2) * (np.matmul(np.matmul(gradient_vector.T, right_inner), gradient_vector))
+            2
+            * (beta**2)
+            * (np.matmul(np.matmul(gradient_vector.T, right_inner), gradient_vector))
         )
         point_curv = left_term + right_term
         gradient_curvature[idx] = point_curv
@@ -137,6 +80,17 @@ def calc_IGSD(landscape):
         gradient_standard_deviations.append(np.std(gradient))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
     return np.round(inverse_gradient_standard_deviations, 2)
+
+
+# calculate fourier densitiy (n-dim)
+def calc_fourier_density(landscape):
+    fourier_result = np.fft.fftn(landscape, norm="forward")
+    # fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
+    fourier_density = round(
+        get_1_norm(fourier_result) ** 2 / np.linalg.norm(np.array(fourier_result)) ** 2,
+        3,
+    )
+    return fourier_density
 
 
 # get fourier landscape
@@ -182,12 +136,16 @@ def get_fourier_landscape(inputs, U, qnn):
     return fourier_result
 
 
-# calculate fourier densitiy (n-dim)
-def calc_fourier_density(landscape):
-    fourier_result = np.fft.fftn(landscape, norm="forward")
-    # fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
-    fourier_density = round(
-        get_1_norm(fourier_result) ** 2 / np.linalg.norm(np.array(fourier_result)) ** 2,
-        3,
-    )
-    return fourier_density
+# get grad curvature
+def get_grad_curv(landscape):
+    first_order_gradients = np.gradient(np.array(landscape))
+    second_order_gradients = []
+    for grad in first_order_gradients:
+        grads_of_grad = np.gradient(np.array(grad))
+        for sec_grad in grads_of_grad:
+            second_order_gradients.append(sec_grad)
+    magnitude_sum = 0
+    for g in second_order_gradients:
+        magnitude_sum += g**2
+    curv_mag = np.sqrt(magnitude_sum)
+    return curv_mag

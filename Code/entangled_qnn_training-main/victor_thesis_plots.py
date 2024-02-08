@@ -172,7 +172,7 @@ def plot_3d_loss_landscape(landscape, ansatz, title):
 def plot_3d_loss_landscape_curv(landscape, ansatz, curv_mode="scalar"):
     landscape = np.array(landscape)
     if curv_mode == "scalar":
-        curv = get_scalar_curvature(landscape)
+        curv = calc_scalar_curvature(landscape)
     elif curv_mode == "grad":
         curv = get_grad_curv(landscape)
     # normalize from -1 to 1
