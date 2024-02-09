@@ -190,6 +190,7 @@ def main():
     run_pauli_z()
     run_phase_s()
 
-
+print("starting")
 # run main() for all experiments
 #main()
+print("done")

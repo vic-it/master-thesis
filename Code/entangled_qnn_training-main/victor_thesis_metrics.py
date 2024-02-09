@@ -5,14 +5,13 @@ from classic_training import cost_func
 from data import *
 import numpy as np
 from utils import *
-from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
 
-# n-dimensional - das war ein schmerz auf n-dimensionen zu generalisieren...
+# n-dimensional scalar curvature
 def calc_scalar_curvature(landscape):
     landscape = np.array(landscape)
     gradient_curvature = np.ndarray(landscape.shape)
