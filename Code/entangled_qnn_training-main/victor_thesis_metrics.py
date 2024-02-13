@@ -64,6 +64,7 @@ def calc_total_variation(landscape):
     length = np.array(landscape).shape[0]
     step_size = lanscape_limit / length
     gradients = np.gradient(np.array(landscape))
+    # discretized version of integral is the sum
     total_variation = np.sum(np.absolute(gradients))
     # normalize by adjusting for step size
     normalized_tv = total_variation * step_size
@@ -75,25 +76,25 @@ def calc_IGSD(landscape):
     gradients = np.gradient(np.array(landscape))
     # each array of the gradients encompasses the gradients for one dimension/direction/parameter
     gradient_standard_deviations = []
-    for gradient in gradients:
-        gradient_standard_deviations.append(np.std(gradient))
+    for dimension in gradients:
+        gradient_standard_deviations.append(np.std(dimension))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
     return np.round(inverse_gradient_standard_deviations, 2)
 
 
 # calculate fourier densitiy (n-dim)
 def calc_fourier_density(landscape):
-    fourier_result = np.fft.fftn(landscape, norm="forward")
-    # fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
+    #fourier_result = np.fft.fftn(landscape, norm="forward")
+    fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
     fourier_density = round(
         get_1_norm(fourier_result) ** 2 / np.linalg.norm(np.array(fourier_result)) ** 2,
         3,
     )
-    return fourier_density
+    return fourier_density, fourier_result
 
 
 # get fourier landscape
-def get_fourier_landscape(inputs, U, qnn):
+def get_fourier_landscape(inputs, U, qnn, steps = 60):
     def loss_function(params):
         qnn.params = torch.tensor(
             [[[params[0], params[1]]]], dtype=torch.float64, requires_grad=True
@@ -113,7 +114,7 @@ def get_fourier_landscape(inputs, U, qnn):
         loss_function,
         direction_x=dir1,
         direction_y=dir2,
-        n_steps_x=60,
+        n_steps_x=steps,
         end_points_x=end_points,
     )
     # previous fourier density calculations
@@ -121,14 +122,14 @@ def get_fourier_landscape(inputs, U, qnn):
         "different versions of calculating fourier density - not sure which one is the correct one?"
     )
     fourier_density = round(
-        np.linalg.norm(np.array(fourier_result.values), ord=1) ** 2
-        / np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2,
+        (np.linalg.norm(np.array(fourier_result.values), ord=1) ** 2)
+        / (np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2),
         3,
     )
     print("FD1:", fourier_density)
     fourier_density = round(
-        get_1_norm(fourier_result.values) ** 2
-        / np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2,
+        (get_1_norm(fourier_result.values) ** 2)
+        / (np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2),
         3,
     )
     print("FD2:", fourier_density)

@@ -16,7 +16,6 @@ from victor_thesis_utils import get_meta_for_mode
 
 # plot a row of datasets
 def plot_row(in_data, titles, gate_name, ansatz, mode="default"):
-    in_data
     width = len(in_data)
     min_val = np.min(in_data)
     max_val = np.max(in_data)
@@ -70,6 +69,52 @@ def plot_row(in_data, titles, gate_name, ansatz, mode="default"):
     fig.suptitle(sup_title, x=0.43)
     plt.show()
 
+# plots 2d fourier landscapes
+def plot_fourier_row(landscapes, titles):
+    landscapes = np.array(landscapes)
+    width = len(landscapes)
+    min_val = 0
+    max_val = 0.5
+    fig, ax = plt.subplots(1, width, figsize=(9, 3))    
+    for data_idx in range(width):
+        data = landscapes[data_idx]
+        length = len(data)
+        x_labels = []
+        # create labels
+        for i in range(length):
+            n = f"{i}"
+            x_labels.append(n)
+        y_labels = x_labels
+        # do plot stuff
+
+        im = ax[data_idx].imshow(data, cmap="viridis", vmin=min_val, vmax=max_val)
+        # what happens to values below the color bar (=legend) threshold
+        # set label ticks
+        ax[data_idx].set_xticks(np.arange(len(x_labels)), labels=x_labels)
+        ax[data_idx].set_yticks(np.arange(len(x_labels)), labels=y_labels)
+        ax[data_idx].set_ylabel("y freq", rotation=90, va="center")
+        ax[data_idx].set_xlabel("x freq")
+        tick_density = int(length / 4)
+        # only display every x'th tick
+        ax[data_idx].set_xticks(ax[data_idx].get_xticks()[::tick_density])
+        ax[data_idx].set_yticks(ax[data_idx].get_yticks()[::tick_density])
+        plt.setp(
+            ax[data_idx].get_xticklabels(),
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+        )
+
+        ax[data_idx].set_title(titles[data_idx])
+    fig.colorbar(im, ax=ax.ravel().tolist(), shrink=0.58)
+    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.75, top=0.9, wspace=0.7)
+    #fig.suptitle(sup_title, x=0.43)
+    plt.show()
+
+
+
+
+
 
 # 3D scatter plot of U3 Gate
 def plot_scatter_of_U3(landscape, points, ticks):
@@ -88,7 +133,6 @@ def plot_scatter_of_U3(landscape, points, ticks):
     cmap_rb = matplotlib.colors.LinearSegmentedColormap.from_list(
         "rb_cmap", [c_red, c_white], 512
     )
-
     im = ax.scatter(
         x,
         y,
@@ -96,7 +140,7 @@ def plot_scatter_of_U3(landscape, points, ticks):
         c=values,
         cmap=cmap_rb,
         norm=matplotlib.colors.LogNorm(vmin=v_min, vmax=v_max),
-        depthshade=0,
+        depthshade=0
     )
     # set labels
     length = 6
