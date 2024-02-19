@@ -32,7 +32,7 @@ def get_zero_one_datapoints():
     zero_state = np.array([[1], [0]], dtype=complex)
     one_state = np.array([[0], [1]], dtype=complex)
     #super_pos_state = np.array([[1], [1]], dtype=complex) / np.sqrt(2)
-    tensor = torch.tensor([zero_state, one_state])
+    tensor = torch.tensor(np.array([zero_state, one_state]))
     return tensor
     # inputs = torch.from_numpy(np.array([zero_state, one_state], dtype=complex))
     # print(inputs.size())
