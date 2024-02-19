@@ -63,11 +63,14 @@ def run_experiment_on(
     # plot fourier stuff (can only plot one at a time?)
     print("Frequency Domain for Plot", fourier_plot)
     fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
-    print("FD3", calc_fourier_density(landscapes[0]))
+    fd0, _ = calc_fourier_density(landscapes[0])
+    print("FD3", fd0)
     fourier_result_non_ent = get_fourier_landscape(non_entangled_inputs, unitary, qnn)
-    print("FD3", calc_fourier_density(landscapes[1]))
+    fd1, _ = calc_fourier_density(landscapes[1])
+    print("FD3", fd1)
     fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
-    print("FD3", calc_fourier_density(landscapes[2]))
+    fd2, _ = calc_fourier_density(landscapes[2])
+    print("FD3", fd2)
     if fourier_plot == 1:
         orqviz.fourier.plot_2D_fourier_result(
             fourier_result_z_o, max_freq_x=10, max_freq_y=10
@@ -121,7 +124,7 @@ def run_hadamard():
         ansatz="U2",
         print_info=False,
         num_data_points=1,
-        num_ticks=20,
+        num_ticks=50,
         fourier_plot=3,
     )
     # U3 visualization has troubles with different tick numbers -> maybe sample errors?

@@ -45,6 +45,7 @@ def generate_loss_landscape(grid_size, inputs, U, qnn):
     landscape = []
     lanscape_limit = 2 * math.pi
     step_size = lanscape_limit / grid_size
+    #step_size = lanscape_limit / (grid_size-1) # <- more evenly spread samples
     x = inputs
     expected_output = torch.matmul(U, x)
     y_true = expected_output.conj()
