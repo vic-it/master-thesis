@@ -54,5 +54,10 @@ def print_datapoints(points, title):
             # idx = i * len(row) + j + 1
             print("", i, " - ", j, ":", point)
 
-def get_1_norm(arr):
-    return np.sum(np.absolute(np.array(arr)))
+#custom k-norm function as np.linalg norm behaves weirdly
+def get_k_norm(arr,k):
+    arr = np.array(arr)
+    inner_sum = 0
+    for num in np.nditer(arr):
+        inner_sum += np.absolute(num)**k
+    return inner_sum**(1./k)

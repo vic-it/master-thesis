@@ -74,7 +74,7 @@ def plot_fourier_row(landscapes, titles):
     landscapes = np.array(landscapes)
     width = len(landscapes)
     min_val = 0
-    max_val = 0.5
+    max_val = 0.7
     fig, ax = plt.subplots(1, width, figsize=(9, 3))    
     for data_idx in range(width):
         data = landscapes[data_idx]

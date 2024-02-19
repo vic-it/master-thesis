@@ -85,9 +85,11 @@ def calc_IGSD(landscape):
 # calculate fourier densitiy (n-dim)
 def calc_fourier_density(landscape):
     #fourier_result = np.fft.fftn(landscape, norm="forward")
+    # norm "backward" and "ortho" give MUCH higher results than "forward"
+    # as they normalize by 1/n for the direction given, (or 1/sqrt(n) on both directions for ortho) for some reason
     fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
     fourier_density = round(
-        get_1_norm(fourier_result) ** 2 / np.linalg.norm(np.array(fourier_result)) ** 2,
+        (get_k_norm(fourier_result,1) ** 2) / (get_k_norm(fourier_result,2) ** 2),
         3,
     )
     return fourier_density, fourier_result
@@ -126,13 +128,20 @@ def get_fourier_landscape(inputs, U, qnn, steps = 60):
         / (np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2),
         3,
     )
-    print("FD1:", fourier_density)
+    print("FD lib with np linalg norms:", fourier_density)
     fourier_density = round(
-        (get_1_norm(fourier_result.values) ** 2)
+        (get_k_norm(fourier_result.values,1) ** 2)
         / (np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2),
         3,
     )
-    print("FD2:", fourier_density)
+    print("FD lib with semi custom norms:", fourier_density)    
+    
+    fourier_density = round(
+        (get_k_norm(fourier_result.values,1) ** 2)
+        / (get_k_norm(fourier_result.values,2) ** 2),
+        3,
+    )
+    print("FD lib with full custom norms:", fourier_density)
     return fourier_result
 
 
