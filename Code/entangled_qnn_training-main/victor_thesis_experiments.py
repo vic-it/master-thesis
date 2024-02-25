@@ -35,11 +35,11 @@ def run_experiment_on(
         # print expected output
         print_expected_output(unitary, z_o_inputs, "zero one")
     # calculate loss landscapes
-    loss_z_o = generate_loss_landscape(num_ticks, z_o_inputs, unitary, qnn)
-    loss_non_ent = generate_loss_landscape(
+    loss_z_o = generate_2d_loss_landscape(num_ticks, z_o_inputs, unitary, qnn)
+    loss_non_ent = generate_2d_loss_landscape(
         num_ticks, non_entangled_inputs, unitary, qnn
     )
-    loss_ent = generate_loss_landscape(num_ticks, entangled_inputs, unitary, qnn)
+    loss_ent = generate_2d_loss_landscape(num_ticks, entangled_inputs, unitary, qnn)
     # multiplot lanscapes and gradients
     landscapes = [loss_z_o, loss_non_ent, loss_ent]
     names = [
@@ -124,7 +124,7 @@ def run_hadamard():
         ansatz="U2",
         print_info=False,
         num_data_points=1,
-        num_ticks=50,
+        num_ticks=20,
         fourier_plot=3,
     )
     # U3 visualization has troubles with different tick numbers -> maybe sample errors?

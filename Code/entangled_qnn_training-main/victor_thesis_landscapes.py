@@ -39,9 +39,38 @@ def get_zero_one_datapoints():
     # inputs = inputs.reshape((inputs.shape[0], int(inputs.shape[1] / U.shape[0]), U.shape[0])).permute(0, 2, 1)
     # return inputs
 
+# gen n-d loss landscape
+def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
+    x = inputs
+    expected_output = torch.matmul(U, x)
+    y_true = expected_output.conj()
+    # calculate the parameter values for the grid size, evenly spread from 0 to 2 pi
+    param_vals = []
+    lanscape_limit = 2 * math.pi
+    step_size = lanscape_limit / grid_size
+    #step_size = lanscape_limit / (grid_size-1) # <- more evenly spread samples
+    for step in range(grid_size):
+        param_vals.append(step*step_size)
+    # generate landscape
+    landscape_shape = []
+    for _ in range(dimensions):
+        landscape_shape.append(grid_size)
+    landscape_shape = tuple(landscape_shape)
+    landscape = np.empty(landscape_shape)
+    # for every point
+    for idx, _ in np.ndenumerate(landscape):  
+        param_list = []      
+        # generate param array
+        for dimension in idx:
+            param_list.append(param_vals[dimension])
+        # calculate cost function
+        qnn.params = torch.tensor([[param_list]], dtype=torch.float64, requires_grad=True)
+        cost = cost_func(inputs, y_true, qnn, device="cpu") 
+        landscape[idx]=cost.item()
+    return landscape, param_vals
 
 # gen 2D loss landscape
-def generate_loss_landscape(grid_size, inputs, U, qnn):
+def generate_2d_loss_landscape(grid_size, inputs, U, qnn):
     landscape = []
     lanscape_limit = 2 * math.pi
     step_size = lanscape_limit / grid_size
@@ -51,7 +80,8 @@ def generate_loss_landscape(grid_size, inputs, U, qnn):
     y_true = expected_output.conj()
     for i in range(grid_size):
         # start at 2pi so y axis label still fits (upwards scaling instead of downards)
-        arg_1 = lanscape_limit - i * step_size
+        #arg_1 = lanscape_limit - i * step_size
+        arg_1 = i * step_size
         row = []
         for j in range(grid_size):
             # start at 0 because x axis label direction is correct
