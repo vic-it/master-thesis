@@ -79,6 +79,8 @@ def calc_IGSD(landscape):
     for dimension in gradients:
         gradient_standard_deviations.append(np.std(dimension))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
+    # normalize by number of ticks -> probably optional?
+    inverse_gradient_standard_deviations = np.divide(inverse_gradient_standard_deviations, len(landscape))
     return np.round(inverse_gradient_standard_deviations, 2)
 
 
@@ -92,7 +94,8 @@ def calc_fourier_density(landscape):
         (get_k_norm(fourier_result,1) ** 2) / (get_k_norm(fourier_result,2) ** 2),
         3,
     )
-    return fourier_density, fourier_result
+    return fourier_density
+    #return fourier_density, fourier_result
 
 
 # get fourier landscape

@@ -5,13 +5,71 @@ from data import *
 from generate_experiments import get_qnn
 import numpy as np
 from utils import *
-from victor_thesis_experiments import *
+#from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
+def test_metrics_convergence():
+    # hadamard U2
+    qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
+    ############
+    data_points = 3
+    num_random_unitaries = 5
+    min_ticks = 5
+    max_ticks = 60
+    # generate data points
+    unitary_for_shape = torch.tensor(np.array(random_unitary_matrix(1)) / np.sqrt(2), dtype=torch.complex128, device="cpu")
+    non_entangled_inputs = generate_random_datapoints(data_points, 1, unitary_for_shape)
+    entangled_inputs = generate_random_datapoints(data_points, 2, unitary_for_shape)
 
+    # for each random unitary -> do 30 runs with 1 tick, 2 ticks, ... 30 ticks -> evaluate metrics in line charts
+    # metric[#run][values by tick 1,...,30]
+    non_entangled_igsds = []
+    non_entangled_TVs = []
+    non_entangled_FDs = []
+    non_entangled_SC = []
+    entangled_igsds = []
+    entangled_TVs = []
+    entangled_FDs = []
+    entangled_SC = []
+    for _ in range(num_random_unitaries):
+        unitary = torch.tensor(np.array(random_unitary_matrix(1)) / np.sqrt(2), dtype=torch.complex128, device="cpu")
+        non_entangled_igsds_row = []
+        non_entangled_TVs_row = []
+        non_entangled_FDs_row = []
+        non_entangled_SC_row = []
+        entangled_igsds_row = []
+        entangled_TVs_row = []
+        entangled_FDs_row = []
+        entangled_SC_row = []
+        # calculate metrics
+        for ticks in range(min_ticks, max_ticks, 1):
+            non_entangled_landscape, _= generate_loss_landscape(ticks, 2 , non_entangled_inputs, unitary, qnn)  
+            entangled_landscape, _= generate_loss_landscape(ticks, 2 , entangled_inputs, unitary, qnn)   
+            non_entangled_igsds_row.append(get_k_norm(calc_IGSD(non_entangled_landscape),1))
+            non_entangled_TVs_row.append(calc_total_variation(non_entangled_landscape))
+            non_entangled_FDs_row.append(calc_fourier_density(non_entangled_landscape))
+            non_entangled_SC_row.append(get_k_norm(calc_scalar_curvature(non_entangled_landscape),1))
+            entangled_igsds_row.append(get_k_norm(calc_IGSD(entangled_landscape),1))
+            entangled_TVs_row.append(calc_total_variation(entangled_landscape))
+            entangled_FDs_row.append(calc_fourier_density(entangled_landscape))
+            entangled_SC_row.append(get_k_norm(calc_scalar_curvature(entangled_landscape),1))
+        non_entangled_igsds.append(non_entangled_igsds_row)
+        non_entangled_TVs.append(non_entangled_TVs_row)
+        non_entangled_FDs.append(non_entangled_FDs_row)
+        non_entangled_SC.append(non_entangled_SC_row)
+        entangled_igsds.append(entangled_igsds_row)
+        entangled_TVs.append(entangled_TVs_row)
+        entangled_FDs.append(entangled_FDs_row)
+        entangled_SC.append(entangled_SC_row)
+    print(non_entangled_FDs)
+    plot_metrics_convergence(non_entangled_TVs, entangled_TVs, "total variation", min_ticks)
+    plot_metrics_convergence(non_entangled_FDs, non_entangled_FDs, "fourier density (non entangled)", min_ticks)
+    plot_metrics_convergence(entangled_FDs, entangled_FDs, "fourier density (entangled)", min_ticks)
+    plot_metrics_convergence(non_entangled_igsds, entangled_igsds, "igsd (sum of absolutes)", min_ticks)
+    plot_metrics_convergence(non_entangled_SC, entangled_SC, "scalar curvature (sum of absolutes)", min_ticks)
 # Experiments Framework
 def run_experiment_on(
     gate_name,
@@ -150,7 +208,7 @@ def run_pauli_y():
         np.array([[0, -1j], [1j, 0]]), dtype=torch.complex128, device="cpu"
     )
     run_experiment_on(
-        "Pauli-X",
+        "Pauli-Y",
         U,
         ansatz="R",
         print_info=False,
@@ -163,7 +221,7 @@ def run_pauli_y():
 def run_pauli_z():
     U = torch.tensor(np.array([[1, 0], [0, -1]]), dtype=torch.complex128, device="cpu")
     run_experiment_on(
-        "Pauli-X",
+        "Pauli-Z",
         U,
         ansatz="R",
         print_info=False,
@@ -176,9 +234,22 @@ def run_pauli_z():
 def run_phase_s():
     U = torch.tensor(np.array([[1, 0], [0, 1j]]), dtype=torch.complex128, device="cpu")
     run_experiment_on(
-        "Pauli-X",
+        "Phase-S",
         U,
-        ansatz="R",
+        ansatz="U2",
+        print_info=False,
+        num_data_points=1,
+        num_ticks=20,
+        fourier_plot=3,
+    )
+
+
+def run_random_unitary():    
+    U = torch.tensor(np.array(random_unitary_matrix(1)), dtype=torch.complex128, device="cpu")
+    run_experiment_on(
+        "Random Unitary",
+        U,
+        ansatz="U2",
         print_info=False,
         num_data_points=1,
         num_ticks=20,
@@ -194,6 +265,9 @@ def main():
     run_phase_s()
 
 print("starting")
+
+
+test_metrics_convergence()
 # run main() for all experiments
-#main()
+# main()
 print("done")

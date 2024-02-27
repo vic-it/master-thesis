@@ -5,7 +5,7 @@ from data import *
 from generate_experiments import get_qnn
 import numpy as np
 from utils import *
-from victor_thesis_experiments import *
+#from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *

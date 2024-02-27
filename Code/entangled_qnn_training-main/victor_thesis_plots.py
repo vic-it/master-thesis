@@ -6,12 +6,12 @@ import matplotlib
 import matplotlib as mpl
 from utils import *
 from matplotlib import cm
-from victor_thesis_experiments import *
+#from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
-from victor_thesis_utils import get_meta_for_mode
+#from victor_thesis_utils import get_meta_for_mode
 
 
 # plot a row of datasets
@@ -67,6 +67,20 @@ def plot_row(in_data, titles, gate_name, ansatz, mode="default"):
     fig.colorbar(im, ax=ax.ravel().tolist(), shrink=0.58)
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.75, top=0.9, wspace=0.7)
     fig.suptitle(sup_title, x=0.43)
+    plt.show()
+
+# test for convergence of metrics for U2 gate
+def plot_metrics_convergence(non_entangled_metric_data, entangled_metric_data, metric_name, min_ticks):
+    fig, axes = plt.subplots(1, len(entangled_metric_data))
+    fig.suptitle(f"{metric_name} for {len(entangled_metric_data)} runs")
+    x = range(min_ticks, len(entangled_metric_data[0])+min_ticks,1)
+    for run_id in range(len(entangled_metric_data)):        
+        axes[run_id].plot(x, non_entangled_metric_data[run_id], label="non entangled")
+        axes[run_id].plot(x, entangled_metric_data[run_id], label ="entangled") 
+    plt.ylabel("value of metric")  # add Y-axis label
+    plt.xlabel("ticks")  # add X-axis label
+    fig.tight_layout()
+    plt.legend()
     plt.show()
 
 # plots 2d fourier landscapes
