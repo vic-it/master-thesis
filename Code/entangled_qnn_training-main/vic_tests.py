@@ -1,7 +1,8 @@
 import time
 from datetime import datetime
 from timeit import default_timer as timer
-from victor_thesis_experiments import *
+from qnns.cuda_qnn import UnitaryParametrization
+#from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
@@ -51,9 +52,9 @@ def generate_data_points(type_of_data, entanglement, num_data_points):
 def run_single_experiment(grid_size, dimensions, data_batch, U, qnn, conf_id):
     #data batch contains 5 datapoint-sets, as we do 5 runs per unitary and then average etc.
     landscapes= []
-    for data_set in data_batch:
-        landscapes.append(generate_loss_landscape(grid_size, dimensions, data_set, U, qnn))
-    process_and_store_metrics(landscapes, conf_id)
+    # for data_set in data_batch:
+    #     landscapes.append(generate_loss_landscape(grid_size, dimensions, data_set, U, qnn))
+    # process_and_store_metrics(landscapes, conf_id)
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print(f"[{now}] Finished run: {conf_id}")
 
@@ -91,8 +92,7 @@ def run_full_experiment(num_qubits, num_unitaries = 5, num_tries = 5):
                             # generate array of training data configurations [type_of_data][num_data_points][deg_of_entanglement][id_unitary][id_try]
                             data_points = generate_data_points(type_of_data, deg_of_entanglement, num_data_points)
                             data_batch_for_unitary.append(data_points)
-                            # run experiment on individual core
-                        # run this per configuration X unitary (5 sets of data -> take average and stdv...)
+                        # run this per configuration unitary (5 sets of data -> take average and stdv...)
                         exe.submit(run_single_experiment,grid_size, dimensions, data_batch_for_unitary, unitary, qnn, conf_id)                 
                         conf_id += 1
                         unitary_row.append(data_batch_for_unitary)                    
