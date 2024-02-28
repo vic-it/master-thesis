@@ -21,9 +21,12 @@ def generate_random_datapoints(numb_points, s_rank, U):
     inputs = torch.from_numpy(
         np.array(uniform_random_data(schmidt_rank, num_points, x_qbits, r_qbits))
     )
+    print("data")
+    print(inputs)
     inputs = inputs.reshape(
         (inputs.shape[0], int(inputs.shape[1] / U.shape[0]), U.shape[0])
     ).permute(0, 2, 1)
+    print(inputs)
     return inputs
 
 

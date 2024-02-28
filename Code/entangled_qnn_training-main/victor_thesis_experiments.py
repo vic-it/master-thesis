@@ -4,6 +4,7 @@ import numpy as np
 from data import *
 from generate_experiments import get_qnn
 import numpy as np
+from qnns.cuda_qnn import UnitaryParametrization
 from utils import *
 #from victor_thesis_experiments import *
 from victor_thesis_utils import *
@@ -13,7 +14,10 @@ from victor_thesis_metrics import *
 
 def test_metrics_convergence():
     # hadamard U2
-    qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
+    #qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
+    num_qubits = 2
+    qnn = UnitaryParametrization(num_wires=num_qubits, num_layers=1, device='cpu')
+    print(qnn)
     ############
     data_points = 2
     num_random_unitaries = 5
@@ -267,7 +271,7 @@ def main():
 print("starting")
 
 
-test_metrics_convergence()
+#test_metrics_convergence()
 # run main() for all experiments
 # main()
 print("done")
