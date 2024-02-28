@@ -92,7 +92,7 @@ def calc_fourier_density(landscape):
     fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
     fourier_density = round(
         (get_k_norm(fourier_result,1) ** 2) / (get_k_norm(fourier_result,2) ** 2),
-        3,
+        6,
     )
     return fourier_density
     #return fourier_density, fourier_result

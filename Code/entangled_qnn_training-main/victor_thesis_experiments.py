@@ -15,10 +15,10 @@ def test_metrics_convergence():
     # hadamard U2
     qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
     ############
-    data_points = 3
+    data_points = 2
     num_random_unitaries = 5
-    min_ticks = 5
-    max_ticks = 60
+    min_ticks = 2
+    max_ticks = 20
     # generate data points
     unitary_for_shape = torch.tensor(np.array(random_unitary_matrix(1)) / np.sqrt(2), dtype=torch.complex128, device="cpu")
     non_entangled_inputs = generate_random_datapoints(data_points, 1, unitary_for_shape)

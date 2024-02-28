@@ -115,6 +115,46 @@ class CudaPlataeu(CudaQNN):
         #     print(f"qnn is not unitary")
         return result
 
+class UnitaryParametrization(CudaQNN):
+    # parametrization using theorem 1 in https://arxiv.org/pdf/1103.3408.pdf
+    def __init__(self, num_wires, num_layers: int, device='cpu'):
+        super(UnitaryParametrization, self).__init__(num_wires, 1, device)
+        self.matrix_size = (2 ** self.num_wires, 2 ** self.num_wires)
+
+
+    def init_params(self):
+        """
+        Initialises the parameters of the quantum neural network
+        """
+        self.d = 2**(self.num_wires)
+        params = np.random.random(size=(self.d, self.d)) * (np.pi/2)
+
+        return torch.tensor(params, device=self.device, requires_grad=True)
+
+
+    def qnn(self):
+        """
+        Creates qnn circuit on self.wires with self.num_layers many layers
+        """
+        mat = torch.eye(self.d).to(torch.complex128)
+
+        # first part phase matrices
+        for i in range(self.d):
+            mat[i,i] = torch.exp(1j*self.params[i,i])
+
+        matleft = torch.eye(self.d).to(torch.complex128)
+        for m in range(0, self.d-1):
+            for n in range(m+1, self.d):
+                matleft = torch.matmul(matleft, mnmatrix(m, n, self.params[m, n], self.params[n, m], self.d))
+
+        return torch.matmul(matleft, mat)
+
+    def get_matrix_V(self):
+        return self.qnn().detach()
+
+    def get_tensor_V(self):
+        return self.qnn()
+
 
 class CudaPennylane(CudaQNN):
 
