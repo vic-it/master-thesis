@@ -78,10 +78,10 @@ def run_full_experiment(num_qubits, num_unitaries = 5, num_tries = 5):
         # iterate over  type of training data: 1=random, 2=orthogonal, 3=linearly dependent in H_x, 4= variable schmidt rank
         for type_of_data in range(1,5,1):   
             num_data_points_row = []
-            # iterate over degree of entanglement 1 to 4
+            # iterate over training data size 1 to 4
             for num_data_points in range(1,5,1):
                 deg_of_entanglement_row = []
-                # iterate over training data size 1 to 4
+                # iterate over degree of entanglement 1 to 4
                 for deg_of_entanglement in range(1,5,1):
                     # iterate over unitaries
                     unitary_row = []

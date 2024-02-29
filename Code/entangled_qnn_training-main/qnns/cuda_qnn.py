@@ -11,9 +11,10 @@ from qnns.qnn import QNN
 # For the paper "CudaPennylane" was used
 # Note that regardless of their name, the QNNs can be simulated on CPU aswell
 
+
 class CudaQNN(QNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         qg.init_globals(device=device)
         self.num_wires = num_wires
         self.num_layers = num_layers
@@ -43,7 +44,8 @@ class CudaPlataeu(CudaQNN):
     """
     BlateauQNN from paper McClean: Barren plateuas in quantum neural landscape
     """
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaPlataeu, self).__init__(num_wires, num_layers, device)
         self.ent_layers = self.init_entanglement_layers()
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
@@ -51,26 +53,27 @@ class CudaPlataeu(CudaQNN):
         self.fixed_rotations = self.init_fixed_rotations()
 
     def init_fixed_rotations(self):
-        pi_fourth = torch.tensor(np.pi/4)
+        pi_fourth = torch.tensor(np.pi / 4)
         result = qg.RY(pi_fourth)
         for i in range(1, self.num_wires):
-            result = torch.kron(
-                result,
-                qg.RY(pi_fourth)
-            )
+            result = torch.kron(result, qg.RY(pi_fourth))
         result.to(self.device)
         return result
 
     def init_entanglement_layers(self):
         if self.num_wires > 1:
             ent_layers = []
+
             def ent_layer():
                 if self.num_wires > 1:
-                    for i in range(self.num_wires-1):
+                    for i in range(self.num_wires - 1):
                         c_wire = i
                         t_wire = (i + 1) % self.num_wires
                         qml.CZ(wires=[c_wire, t_wire])
-            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+            return torch.tensor(
+                qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128
+            )
 
     def init_random_rotation_layer(self):
         return torch.randint(3, (self.num_wires, self.num_layers))
@@ -87,16 +90,18 @@ class CudaPlataeu(CudaQNN):
         # return Variable(torch.tensor(params, device=self.device), requires_grad=True)
         """
 
-        params = np.random.normal(0, 2*np.pi, size = (self.num_wires, self.num_layers))
+        params = np.random.normal(0, 2 * np.pi, size=(self.num_wires, self.num_layers))
         return torch.tensor(params, device=self.device, requires_grad=True)
 
     def layer(self, layer_num):
         rotation_list = [qg.RX, qg.RY, qg.RZ]
-        rotations = rotation_list[self.rotations[0, layer_num]](self.params[0, layer_num])
+        rotations = rotation_list[self.rotations[0, layer_num]](
+            self.params[0, layer_num]
+        )
         for i in range(1, self.num_wires):
             rotations = torch.kron(
                 rotations,
-                rotation_list[self.rotations[i, layer_num]](self.params[i, layer_num])
+                rotation_list[self.rotations[i, layer_num]](self.params[i, layer_num]),
             )
         rotations.to(self.device)
         result = torch.matmul(rotations, self.fixed_rotations)
@@ -115,22 +120,36 @@ class CudaPlataeu(CudaQNN):
         #     print(f"qnn is not unitary")
         return result
 
+
+def ymatrix(m, n, param, d):
+    Y = torch.zeros(d, d).to(torch.complex128)
+    # |m><n| = mth row nth col
+    Y[m, n] = -1j
+    Y[n, m] = 1j
+    return torch.matrix_exp(1j * param * Y)
+
+
+def mnmatrix(m, n, paramy, paramp, d):
+    Pmatrix = torch.eye(d).to(torch.complex128)
+    Pmatrix[n, n] = torch.exp(1j * paramp)
+    Ymatrix = ymatrix(m, n, paramy, d)
+    return torch.matmul(Pmatrix, Ymatrix)
+
+
 class UnitaryParametrization(CudaQNN):
     # parametrization using theorem 1 in https://arxiv.org/pdf/1103.3408.pdf
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(UnitaryParametrization, self).__init__(num_wires, 1, device)
-        self.matrix_size = (2 ** self.num_wires, 2 ** self.num_wires)
-
+        self.matrix_size = (2**self.num_wires, 2**self.num_wires)
 
     def init_params(self):
         """
         Initialises the parameters of the quantum neural network
         """
-        self.d = 2**(self.num_wires)
-        params = np.random.random(size=(self.d, self.d)) * (np.pi/2)
+        self.d = 2 ** (self.num_wires)
+        params = np.random.random(size=(self.d, self.d)) * (np.pi / 2)
 
         return torch.tensor(params, device=self.device, requires_grad=True)
-
 
     def qnn(self):
         """
@@ -140,12 +159,16 @@ class UnitaryParametrization(CudaQNN):
 
         # first part phase matrices
         for i in range(self.d):
-            mat[i,i] = torch.exp(1j*self.params[i,i])
+            print(self.params[i,i])
+            mat[i, i] = torch.exp(torch.tensor(1j * self.params[i, i]))
 
         matleft = torch.eye(self.d).to(torch.complex128)
-        for m in range(0, self.d-1):
-            for n in range(m+1, self.d):
-                matleft = torch.matmul(matleft, mnmatrix(m, n, self.params[m, n], self.params[n, m], self.d))
+        for m in range(0, self.d - 1):
+            for n in range(m + 1, self.d):
+                matleft = torch.matmul(
+                    matleft,
+                    mnmatrix(m, n, self.params[m, n], self.params[n, m], self.d),
+                )
 
         return torch.matmul(matleft, mat)
 
@@ -153,12 +176,14 @@ class UnitaryParametrization(CudaQNN):
         return self.qnn().detach()
 
     def get_tensor_V(self):
+        print(type(self.params))
+        print(self.params.shape)
         return self.qnn()
 
 
 class CudaPennylane(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaPennylane, self).__init__(num_wires, num_layers, device)
         self.ent_layers = self.init_entanglement_layers()
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
@@ -166,18 +191,22 @@ class CudaPennylane(CudaQNN):
     def init_entanglement_layers(self):
         if self.num_wires > 1:
             ent_layers = []
+
             def ent_layer():
                 if self.num_wires > 1:
                     for i in range(self.num_wires):
                         c_wire = i
                         t_wire = (i + 1) % self.num_wires
                         qml.CNOT(wires=[c_wire, t_wire])
-            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+            return torch.tensor(
+                qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128
+            )
 
     def init_params(self):
         depth = self.num_wires + 3
         depth *= self.num_layers
-        std_dev = np.sqrt(1/depth)
+        std_dev = np.sqrt(1 / depth)
         # std_dev = np.pi
         # 3 Parameters per qbit per layer, since we have a parameterised X, Y, Z rotation
 
@@ -186,11 +215,19 @@ class CudaPennylane(CudaQNN):
         return torch.tensor(params, device=self.device, requires_grad=True)
 
     def layer(self, layer_num):
-        result = qg.U3(self.params[0, layer_num, 0], self.params[0, layer_num, 1], self.params[0, layer_num, 2])
+        result = qg.U3(
+            self.params[0, layer_num, 0],
+            self.params[0, layer_num, 1],
+            self.params[0, layer_num, 2],
+        )
         for i in range(1, self.num_wires):
             result = torch.kron(
                 result,
-                qg.U3(self.params[i, layer_num, 0], self.params[i, layer_num, 1], self.params[i, layer_num, 2])
+                qg.U3(
+                    self.params[i, layer_num, 0],
+                    self.params[i, layer_num, 1],
+                    self.params[i, layer_num, 2],
+                ),
             )
         result.to(self.device)
         if self.num_wires > 1:
@@ -207,9 +244,10 @@ class CudaPennylane(CudaQNN):
         #     print(f"qnn is not unitary")
         return result
 
+
 class CudaU2(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaU2, self).__init__(num_wires, num_layers, device)
         self.ent_layers = self.init_entanglement_layers()
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
@@ -217,18 +255,22 @@ class CudaU2(CudaQNN):
     def init_entanglement_layers(self):
         if self.num_wires > 1:
             ent_layers = []
+
             def ent_layer():
                 if self.num_wires > 1:
                     for i in range(self.num_wires):
                         c_wire = i
                         t_wire = (i + 1) % self.num_wires
                         qml.CNOT(wires=[c_wire, t_wire])
-            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+            return torch.tensor(
+                qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128
+            )
 
     def init_params(self):
         depth = self.num_wires + 3
         depth *= self.num_layers
-        std_dev = np.sqrt(1/depth)
+        std_dev = np.sqrt(1 / depth)
         # std_dev = np.pi
         # 3 Parameters per qbit per layer, since we have a parameterised X, Y, Z rotation
 
@@ -241,7 +283,7 @@ class CudaU2(CudaQNN):
         for i in range(1, self.num_wires):
             result = torch.kron(
                 result,
-                qg.U2(self.params[i, layer_num, 0], self.params[i, layer_num, 1])
+                qg.U2(self.params[i, layer_num, 0], self.params[i, layer_num, 1]),
             )
         result.to(self.device)
         if self.num_wires > 1:
@@ -258,9 +300,10 @@ class CudaU2(CudaQNN):
         #     print(f"qnn is not unitary")
         return result
 
+
 class CudaR(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaR, self).__init__(num_wires, num_layers, device)
         self.ent_layers = self.init_entanglement_layers()
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
@@ -268,18 +311,22 @@ class CudaR(CudaQNN):
     def init_entanglement_layers(self):
         if self.num_wires > 1:
             ent_layers = []
+
             def ent_layer():
                 if self.num_wires > 1:
                     for i in range(self.num_wires):
                         c_wire = i
                         t_wire = (i + 1) % self.num_wires
                         qml.CNOT(wires=[c_wire, t_wire])
-            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+            return torch.tensor(
+                qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128
+            )
 
     def init_params(self):
         depth = self.num_wires + 3
         depth *= self.num_layers
-        std_dev = np.sqrt(1/depth)
+        std_dev = np.sqrt(1 / depth)
         # std_dev = np.pi
         # 3 Parameters per qbit per layer, since we have a parameterised X, Y, Z rotation
 
@@ -291,8 +338,7 @@ class CudaR(CudaQNN):
         result = qg.R(self.params[0, layer_num, 0], self.params[0, layer_num, 1])
         for i in range(1, self.num_wires):
             result = torch.kron(
-                result,
-                qg.R(self.params[i, layer_num, 0], self.params[i, layer_num, 1])
+                result, qg.R(self.params[i, layer_num, 0], self.params[i, layer_num, 1])
             )
         result.to(self.device)
         if self.num_wires > 1:
@@ -309,9 +355,10 @@ class CudaR(CudaQNN):
         #     print(f"qnn is not unitary")
         return result
 
+
 class CudaCircuit6(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaCircuit6, self).__init__(num_wires, num_layers, device)
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
         self.zero = torch.tensor(0)
@@ -323,33 +370,48 @@ class CudaCircuit6(CudaQNN):
         # std_dev = np.pi
 
         wall_params = np.random.normal(0, std_dev, (self.num_wires, self.num_layers, 4))
-        cnot_params = np.random.normal(0, std_dev, (self.num_layers, self.num_wires, self.num_wires - 1))
+        cnot_params = np.random.normal(
+            0, std_dev, (self.num_layers, self.num_wires, self.num_wires - 1)
+        )
         wall_params = torch.tensor(wall_params, requires_grad=True)
         cnot_params = torch.tensor(cnot_params, requires_grad=True)
         return [wall_params, cnot_params]
 
     def ent_up(self, wire, layer_num):
         idx = self.num_wires - wire - 1
-        result = qg.controlled_U(wire, wire - 1, qg.RX(self.params[1][layer_num, wire, idx]))
+        result = qg.controlled_U(
+            wire, wire - 1, qg.RX(self.params[1][layer_num, wire, idx])
+        )
         for other_wire in range(wire - 2, -1, -1):
             idx += 1
             result = qg.quick_matmulmat(
-                qg.controlled_U(wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])), result)
+                qg.controlled_U(
+                    wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])
+                ),
+                result,
+            )
         return result
 
     def ent_down(self, wire, layer_num):
         idx = 0
         I = qg.I(2)
-        result = qg.controlled_U(wire, wire + 1, qg.RX(self.params[1][layer_num, wire, idx]).T)
-        for other_wire in range(wire+2, self.num_wires):
+        result = qg.controlled_U(
+            wire, wire + 1, qg.RX(self.params[1][layer_num, wire, idx]).T
+        )
+        for other_wire in range(wire + 2, self.num_wires):
             idx += 1
-            result = torch.matmul(qg.controlled_U(wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])).T, torch.kron(result, I))
+            result = torch.matmul(
+                qg.controlled_U(
+                    wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])
+                ).T,
+                torch.kron(result, I),
+            )
         return result.T
 
     def wire_entanglement(self, wire, layer_num):
         if wire == 0:
             return self.ent_down(wire, layer_num)
-        elif wire == self.num_wires-1:
+        elif wire == self.num_wires - 1:
             return self.ent_up(wire, layer_num)
         else:
             up = self.ent_up(wire, layer_num)
@@ -357,7 +419,9 @@ class CudaCircuit6(CudaQNN):
             # First Block IoD, then Block UoI. This translates into UoI * IoD, which can be done by quick_matmulmat
             # How big should I in UoI be? num_wires - wire - 1. Example: num_wires = 4, wire = 2, then there is
             # only one wire (wire=3) left below the chosen one.
-            return qg.quick_matmulmat(torch.kron(up, qg.I(2**(self.num_wires - wire - 1))), down)
+            return qg.quick_matmulmat(
+                torch.kron(up, qg.I(2 ** (self.num_wires - wire - 1))), down
+            )
 
     def ent_layer(self, layer_num):
         result = self.wire_entanglement(0, layer_num)
@@ -366,21 +430,33 @@ class CudaCircuit6(CudaQNN):
         return result
 
     def layer(self, layer_num):
-        result = qg.U3(self.params[0][0, layer_num, 0], self.zero, self.params[0][0, layer_num, 2])
+        result = qg.U3(
+            self.params[0][0, layer_num, 0], self.zero, self.params[0][0, layer_num, 2]
+        )
         for i in range(1, self.num_wires):
             result = torch.kron(
                 result,
-                qg.U3(self.params[0][i, layer_num, 0], self.zero, self.params[0][i, layer_num, 2])
+                qg.U3(
+                    self.params[0][i, layer_num, 0],
+                    self.zero,
+                    self.params[0][i, layer_num, 2],
+                ),
             )
 
         if self.num_wires > 1:
             result = torch.matmul(self.ent_layer(layer_num), result)
 
-        second_wall = qg.U3(self.params[0][0, layer_num, 2], self.zero, self.params[0][0, layer_num, 3])
+        second_wall = qg.U3(
+            self.params[0][0, layer_num, 2], self.zero, self.params[0][0, layer_num, 3]
+        )
         for i in range(1, self.num_wires):
             second_wall = torch.kron(
                 second_wall,
-                qg.U3(self.params[0][i, layer_num, 2], self.zero, self.params[0][i, layer_num, 3])
+                qg.U3(
+                    self.params[0][i, layer_num, 2],
+                    self.zero,
+                    self.params[0][i, layer_num, 3],
+                ),
             )
         result = torch.matmul(second_wall, result)
         result.to(self.device)
@@ -395,7 +471,7 @@ class CudaCircuit6(CudaQNN):
 
 class CudaEfficient(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaEfficient, self).__init__(num_wires, num_layers, device)
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
         self.zero = torch.tensor(0)
@@ -407,33 +483,48 @@ class CudaEfficient(CudaQNN):
         # std_dev = np.pi
 
         wall_params = np.random.normal(0, std_dev, (self.num_wires, self.num_layers, 4))
-        cnot_params = np.random.normal(0, std_dev, (self.num_layers, self.num_wires, self.num_wires - 1))
+        cnot_params = np.random.normal(
+            0, std_dev, (self.num_layers, self.num_wires, self.num_wires - 1)
+        )
         wall_params = torch.tensor(wall_params, requires_grad=True)
         cnot_params = torch.tensor(cnot_params, requires_grad=True)
         return [wall_params, cnot_params]
 
     def ent_up(self, wire, layer_num):
         idx = self.num_wires - wire - 1
-        result = qg.controlled_U(wire, wire - 1, qg.RX(self.params[1][layer_num, wire, idx]))
+        result = qg.controlled_U(
+            wire, wire - 1, qg.RX(self.params[1][layer_num, wire, idx])
+        )
         for other_wire in range(wire - 2, -1, -1):
             idx += 1
             result = qg.quick_matmulmat(
-                qg.controlled_U(wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])), result)
+                qg.controlled_U(
+                    wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])
+                ),
+                result,
+            )
         return result
 
     def ent_down(self, wire, layer_num):
         idx = 0
         I = qg.I(2)
-        result = qg.controlled_U(wire, wire + 1, qg.RX(self.params[1][layer_num, wire, idx]).T)
-        for other_wire in range(wire+2, self.num_wires):
+        result = qg.controlled_U(
+            wire, wire + 1, qg.RX(self.params[1][layer_num, wire, idx]).T
+        )
+        for other_wire in range(wire + 2, self.num_wires):
             idx += 1
-            result = torch.matmul(qg.controlled_U(wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])).T, torch.kron(result, I))
+            result = torch.matmul(
+                qg.controlled_U(
+                    wire, other_wire, qg.RX(self.params[1][layer_num, wire, idx])
+                ).T,
+                torch.kron(result, I),
+            )
         return result.T
 
     def wire_entanglement(self, wire, layer_num):
         if wire == 0:
             return self.ent_down(wire, layer_num)
-        elif wire == self.num_wires-1:
+        elif wire == self.num_wires - 1:
             return self.ent_up(wire, layer_num)
         else:
             up = self.ent_up(wire, layer_num)
@@ -441,7 +532,9 @@ class CudaEfficient(CudaQNN):
             # First Block IoD, then Block UoI. This translates into UoI * IoD, which can be done by quick_matmulmat
             # How big should I in UoI be? num_wires - wire - 1. Example: num_wires = 4, wire = 2, then there is
             # only one wire (wire=3) left below the chosen one.
-            return qg.quick_matmulmat(torch.kron(up, qg.I(2**(self.num_wires - wire - 1))), down)
+            return qg.quick_matmulmat(
+                torch.kron(up, qg.I(2 ** (self.num_wires - wire - 1))), down
+            )
 
     def ent_layer(self, layer_num):
         result = self.wire_entanglement(0, layer_num)
@@ -450,21 +543,33 @@ class CudaEfficient(CudaQNN):
         return result
 
     def layer(self, layer_num):
-        result = qg.U3(self.params[0][0, layer_num, 0], self.zero, self.params[0][0, layer_num, 2])
+        result = qg.U3(
+            self.params[0][0, layer_num, 0], self.zero, self.params[0][0, layer_num, 2]
+        )
         for i in range(1, self.num_wires):
             result = torch.kron(
                 result,
-                qg.U3(self.params[0][i, layer_num, 0], self.zero, self.params[0][i, layer_num, 2])
+                qg.U3(
+                    self.params[0][i, layer_num, 0],
+                    self.zero,
+                    self.params[0][i, layer_num, 2],
+                ),
             )
 
         if self.num_wires > 1:
             result = torch.matmul(self.ent_layer(layer_num), result)
 
-        second_wall = qg.U3(self.params[0][0, layer_num, 2], self.zero, self.params[0][0, layer_num, 3])
+        second_wall = qg.U3(
+            self.params[0][0, layer_num, 2], self.zero, self.params[0][0, layer_num, 3]
+        )
         for i in range(1, self.num_wires):
             second_wall = torch.kron(
                 second_wall,
-                qg.U3(self.params[0][i, layer_num, 2], self.zero, self.params[0][i, layer_num, 3])
+                qg.U3(
+                    self.params[0][i, layer_num, 2],
+                    self.zero,
+                    self.params[0][i, layer_num, 3],
+                ),
             )
         result = torch.matmul(second_wall, result)
         result.to(self.device)
@@ -479,7 +584,7 @@ class CudaEfficient(CudaQNN):
 
 class CudaComplexPennylane(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaComplexPennylane, self).__init__(num_wires, num_layers, device)
         self.circle_ent_layer = self.init_circle_ent_layers()
         self.matrix_size = 1 << self.num_wires
@@ -487,28 +592,39 @@ class CudaComplexPennylane(CudaQNN):
     def init_circle_ent_layers(self):
         if self.num_wires > 1:
             ent_layers = []
+
             def ent_layer():
                 if self.num_wires > 1:
                     for i in range(self.num_wires):
                         c_wire = i
                         t_wire = (i + 1) % self.num_wires
                         qml.CNOT(wires=[c_wire, t_wire])
-            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+            return torch.tensor(
+                qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128
+            )
 
     def init_params(self):
         depth = self.num_wires + 3
         depth *= self.num_layers
-        std_dev = np.sqrt(1/depth)
+        std_dev = np.sqrt(1 / depth)
         # std_dev = np.pi
         # 3 Parameters per qbit per layer, since we have a parameterised X, Y, Z rotation
 
         wall_params = np.random.normal(0, std_dev, (self.num_wires, self.num_layers, 3))
         ent_params = np.random.normal(0, std_dev, (self.num_wires, self.num_layers))
         # return Variable(torch.tensor(params, device=self.device), requires_grad=True)
-        return [torch.tensor(wall_params, device=self.device, requires_grad=True), torch.tensor(ent_params, device=self.device, requires_grad=True)]
+        return [
+            torch.tensor(wall_params, device=self.device, requires_grad=True),
+            torch.tensor(ent_params, device=self.device, requires_grad=True),
+        ]
 
     def get_rotation(self, wire, layer_num):
-        return qg.U3(self.params[0][wire, layer_num, 0], self.params[0][wire, layer_num, 1], self.params[0][wire, layer_num, 2])
+        return qg.U3(
+            self.params[0][wire, layer_num, 0],
+            self.params[0][wire, layer_num, 1],
+            self.params[0][wire, layer_num, 2],
+        )
 
     def get_controlled_rotation(self, c_wire, t_wire, layer_num):
         return qg.controlled_U(c_wire, t_wire, qg.RX(self.params[1][c_wire, layer_num]))
@@ -518,15 +634,24 @@ class CudaComplexPennylane(CudaQNN):
         if self.num_wires > 1:
             result = torch.kron(result, self.get_rotation(1, layer_num))
             result = torch.matmul(self.get_controlled_rotation(0, 1, layer_num), result)
-            for i in range(2, self.num_wires-1, 2):
-                temp = torch.matmul(self.get_controlled_rotation(i, i+1, layer_num), torch.kron(self.get_rotation(i, layer_num), self.get_rotation(i+1, layer_num)))
+            for i in range(2, self.num_wires - 1, 2):
+                temp = torch.matmul(
+                    self.get_controlled_rotation(i, i + 1, layer_num),
+                    torch.kron(
+                        self.get_rotation(i, layer_num),
+                        self.get_rotation(i + 1, layer_num),
+                    ),
+                )
                 result = torch.kron(result, temp)
             if result.shape[0] != self.matrix_size:
                 result = torch.kron(result, qg.I())
             if self.num_wires > 2:
                 second_ent_layer = self.get_controlled_rotation(2, 1, layer_num)
-                for i in range(3, self.num_wires-1, 2):
-                    second_ent_layer = torch.kron(second_ent_layer, self.get_controlled_rotation(i+1, i, layer_num))
+                for i in range(3, self.num_wires - 1, 2):
+                    second_ent_layer = torch.kron(
+                        second_ent_layer,
+                        self.get_controlled_rotation(i + 1, i, layer_num),
+                    )
                 second_ent_layer = torch.kron(qg.I(), second_ent_layer)
                 if second_ent_layer.shape[0] != self.matrix_size:
                     second_ent_layer = torch.kron(second_ent_layer, qg.I())
@@ -543,7 +668,7 @@ class CudaComplexPennylane(CudaQNN):
 
 class CudaSimpleEnt(CudaQNN):
 
-    def __init__(self, num_wires, num_layers: int, device='cpu'):
+    def __init__(self, num_wires, num_layers: int, device="cpu"):
         super(CudaSimpleEnt, self).__init__(num_wires, num_layers, device)
         self.ent_layers = self.init_entanglement_layers()
         self.matrix_size = (2**self.num_wires, 2**self.num_wires)
@@ -551,6 +676,7 @@ class CudaSimpleEnt(CudaQNN):
     def init_entanglement_layers(self):
         if self.num_wires > 1:
             ent_layers = []
+
             def ent_layer():
                 if self.num_wires > 1:
                     for i in range(self.num_wires):
@@ -563,12 +689,15 @@ class CudaSimpleEnt(CudaQNN):
                         t_wire = (i + 2) % self.num_wires
                         qml.Toffoli(wires=[c_wire1, c_wire2, t_wire])
                 return qml.probs(wires=range(self.num_wires))
-            return torch.tensor(qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128)
+
+            return torch.tensor(
+                qml.matrix(ent_layer)(), device=self.device, dtype=torch.complex128
+            )
 
     def init_params(self):
         depth = self.num_wires + 3
         depth *= self.num_layers
-        std_dev = np.sqrt(1/depth)
+        std_dev = np.sqrt(1 / depth)
         # std_dev = np.pi
         # 3 Parameters per qbit per layer, since we have a parameterised X, Y, Z rotation
 
@@ -577,11 +706,19 @@ class CudaSimpleEnt(CudaQNN):
         return torch.tensor(params, device=self.device, requires_grad=True)
 
     def layer(self, layer_num):
-        result = qg.U3(self.params[0, layer_num, 0], self.params[0, layer_num, 1], self.params[0, layer_num, 2])
+        result = qg.U3(
+            self.params[0, layer_num, 0],
+            self.params[0, layer_num, 1],
+            self.params[0, layer_num, 2],
+        )
         for i in range(1, self.num_wires):
             result = torch.kron(
                 result,
-                qg.U3(self.params[i, layer_num, 0], self.params[i, layer_num, 1], self.params[i, layer_num, 2])
+                qg.U3(
+                    self.params[i, layer_num, 0],
+                    self.params[i, layer_num, 1],
+                    self.params[i, layer_num, 2],
+                ),
             )
         result.to(self.device)
         if self.num_wires > 1:
@@ -593,4 +730,3 @@ class CudaSimpleEnt(CudaQNN):
         for j in range(1, self.num_layers):
             result = torch.matmul(self.layer(j), result)
         return result
-

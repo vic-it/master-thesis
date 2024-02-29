@@ -55,6 +55,7 @@ def print_datapoints(points, title):
             print("", i, " - ", j, ":", point)
 
 #custom k-norm function as np.linalg norm behaves weirdly
+# note: this is the "entry wise" matrix norm, not a vector induced one. https://en.wikipedia.org/wiki/Matrix_norm
 def get_k_norm(arr,k):
     arr = np.array(arr)
     inner_sum = 0

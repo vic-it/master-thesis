@@ -56,9 +56,11 @@ def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
         param_vals.append(step*step_size)
     # generate landscape
     landscape_shape = []
+    # 5, 9 [9][9][9][9][9]
     for _ in range(dimensions):
         landscape_shape.append(grid_size)
     landscape_shape = tuple(landscape_shape)
+    print("ls shape", landscape_shape)
     landscape = np.empty(landscape_shape)
     # for every point
     for idx, _ in np.ndenumerate(landscape):  
@@ -67,7 +69,8 @@ def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
         for dimension in idx:
             param_list.append(param_vals[dimension])
         # calculate cost function
-        qnn.params = torch.tensor([[param_list]], dtype=torch.float64, requires_grad=True)
+        
+        qnn.params = torch.tensor(param_list, dtype=torch.float64, requires_grad=True).reshape(qnn.params.shape)
         cost = cost_func(inputs, y_true, qnn, device="cpu") 
         landscape[idx]=cost.item()
     return landscape, param_vals

@@ -14,7 +14,7 @@ from victor_thesis_metrics import *
 # n-dimensional scalar curvature
 def calc_scalar_curvature(landscape):
     landscape = np.array(landscape)
-    gradient_curvature = np.ndarray(landscape.shape)
+    scalar_curvature = np.ndarray(landscape.shape)
     dims = len(landscape.shape)
     first_order_gradients = np.array(np.gradient(np.array(landscape)))
     second_order_gradients = []
@@ -54,8 +54,8 @@ def calc_scalar_curvature(landscape):
             * (np.matmul(np.matmul(gradient_vector.T, right_inner), gradient_vector))
         )
         point_curv = left_term + right_term
-        gradient_curvature[idx] = point_curv
-    return gradient_curvature
+        scalar_curvature[idx] = point_curv
+    return scalar_curvature
 
 
 # calculate Total Variation (n-dim)
@@ -67,8 +67,8 @@ def calc_total_variation(landscape):
     # discretized version of integral is the sum
     total_variation = np.sum(np.absolute(gradients))
     # normalize by adjusting for step size
-    normalized_tv = total_variation * step_size
-    return np.round(normalized_tv, 2)
+    #total_variation = total_variation * step_size
+    return np.round(total_variation, 2)
 
 
 # calculate IGSD (n-dim)
@@ -80,7 +80,7 @@ def calc_IGSD(landscape):
         gradient_standard_deviations.append(np.std(dimension))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
     # normalize by number of ticks -> probably optional?
-    inverse_gradient_standard_deviations = np.divide(inverse_gradient_standard_deviations, len(landscape))
+    #inverse_gradient_standard_deviations = np.divide(inverse_gradient_standard_deviations, len(landscape))
     return np.round(inverse_gradient_standard_deviations, 2)
 
 

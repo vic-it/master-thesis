@@ -14,17 +14,17 @@ from victor_thesis_metrics import *
 
 def test_metrics_convergence():
     # hadamard U2
-    #qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
+    qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
     num_qubits = 2
-    qnn = UnitaryParametrization(num_wires=num_qubits, num_layers=1, device='cpu')
-    print(qnn)
+    # qnn = UnitaryParametrization(num_wires=num_qubits, num_layers=1, device='cpu')
+    # print(qnn)
     ############
-    data_points = 2
+    data_points = 3
     num_random_unitaries = 5
     min_ticks = 2
     max_ticks = 20
     # generate data points
-    unitary_for_shape = torch.tensor(np.array(random_unitary_matrix(1)) / np.sqrt(2), dtype=torch.complex128, device="cpu")
+    unitary_for_shape = torch.tensor(np.array(random_unitary_matrix(1)), dtype=torch.complex128, device="cpu")
     non_entangled_inputs = generate_random_datapoints(data_points, 1, unitary_for_shape)
     entangled_inputs = generate_random_datapoints(data_points, 2, unitary_for_shape)
 
@@ -74,6 +74,7 @@ def test_metrics_convergence():
     plot_metrics_convergence(entangled_FDs, entangled_FDs, "fourier density (entangled)", min_ticks)
     plot_metrics_convergence(non_entangled_igsds, entangled_igsds, "igsd (sum of absolutes)", min_ticks)
     plot_metrics_convergence(non_entangled_SC, entangled_SC, "scalar curvature (sum of absolutes)", min_ticks)
+    
 # Experiments Framework
 def run_experiment_on(
     gate_name,
@@ -111,54 +112,54 @@ def run_experiment_on(
     ]
     multi_plot_landscape(landscapes, names, gate_name, ansatz)
     # print advanced metrics
-    print(
-        "TOTAL VARIATION: ",
-        calc_total_variation(landscapes[0]),
-        calc_total_variation(landscapes[1]),
-        calc_total_variation(landscapes[2]),
-    )
-    for landscape in landscapes:
-        igsd = calc_IGSD(landscape)
-        print("IGSD (dir 1): ", igsd[0])
-        print("IGSD (dir 2): ", igsd[1])
-        print("---------")
-    # plot fourier stuff (can only plot one at a time?)
-    print("Frequency Domain for Plot", fourier_plot)
-    fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
-    fd0, _ = calc_fourier_density(landscapes[0])
-    print("FD3", fd0)
-    fourier_result_non_ent = get_fourier_landscape(non_entangled_inputs, unitary, qnn)
-    fd1, _ = calc_fourier_density(landscapes[1])
-    print("FD3", fd1)
-    fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
-    fd2, _ = calc_fourier_density(landscapes[2])
-    print("FD3", fd2)
-    if fourier_plot == 1:
-        orqviz.fourier.plot_2D_fourier_result(
-            fourier_result_z_o, max_freq_x=10, max_freq_y=10
-        )
-    elif fourier_plot == 2:
-        orqviz.fourier.plot_2D_fourier_result(
-            fourier_result_non_ent, max_freq_x=10, max_freq_y=10
-        )
-    elif fourier_plot == 3:
-        orqviz.fourier.plot_2D_fourier_result(
-            fourier_result_ent, max_freq_x=10, max_freq_y=10
-        )
-    # plot 3d scatter plots for U3 gate minimization
-    loss_z_o_3d, points_z_o = generate_3D_loss_landscape_with_labels(
-        num_ticks, z_o_inputs, unitary
-    )
-    loss_non_ent_3d, points_non_ent = generate_3D_loss_landscape_with_labels(
-        num_ticks, non_entangled_inputs, unitary
-    )
-    loss_ent_3d, points_ent = generate_3D_loss_landscape_with_labels(
-        num_ticks, entangled_inputs, unitary
-    )
-    plot_scatter_of_U3(loss_z_o_3d, points_z_o, num_ticks)
-    plot_scatter_of_U3(loss_non_ent_3d, points_non_ent, num_ticks)
-    plot_scatter_of_U3(loss_ent_3d, points_ent, num_ticks)
-    # plot basic 3d loss landscapes
+    # print(
+    #     "TOTAL VARIATION: ",
+    #     calc_total_variation(landscapes[0]),
+    #     calc_total_variation(landscapes[1]),
+    #     calc_total_variation(landscapes[2]),
+    # )
+    # for landscape in landscapes:
+    #     igsd = calc_IGSD(landscape)
+    #     print("IGSD (dir 1): ", igsd[0])
+    #     print("IGSD (dir 2): ", igsd[1])
+    #     print("---------")
+    # # plot fourier stuff (can only plot one at a time?)
+    # print("Frequency Domain for Plot", fourier_plot)
+    # fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
+    # fd0, _ = calc_fourier_density(landscapes[0])
+    # print("FD3", fd0)
+    # fourier_result_non_ent = get_fourier_landscape(non_entangled_inputs, unitary, qnn)
+    # fd1, _ = calc_fourier_density(landscapes[1])
+    # print("FD3", fd1)
+    # fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
+    # fd2, _ = calc_fourier_density(landscapes[2])
+    # print("FD3", fd2)
+    # if fourier_plot == 1:
+    #     orqviz.fourier.plot_2D_fourier_result(
+    #         fourier_result_z_o, max_freq_x=10, max_freq_y=10
+    #     )
+    # elif fourier_plot == 2:
+    #     orqviz.fourier.plot_2D_fourier_result(
+    #         fourier_result_non_ent, max_freq_x=10, max_freq_y=10
+    #     )
+    # elif fourier_plot == 3:
+    #     orqviz.fourier.plot_2D_fourier_result(
+    #         fourier_result_ent, max_freq_x=10, max_freq_y=10
+    #     )
+    # # plot 3d scatter plots for U3 gate minimization
+    # loss_z_o_3d, points_z_o = generate_3D_loss_landscape_with_labels(
+    #     num_ticks, z_o_inputs, unitary
+    # )
+    # loss_non_ent_3d, points_non_ent = generate_3D_loss_landscape_with_labels(
+    #     num_ticks, non_entangled_inputs, unitary
+    # )
+    # loss_ent_3d, points_ent = generate_3D_loss_landscape_with_labels(
+    #     num_ticks, entangled_inputs, unitary
+    # )
+    # plot_scatter_of_U3(loss_z_o_3d, points_z_o, num_ticks)
+    # plot_scatter_of_U3(loss_non_ent_3d, points_non_ent, num_ticks)
+    # plot_scatter_of_U3(loss_ent_3d, points_ent, num_ticks)
+    # # plot basic 3d loss landscapes
     plot_3d_loss_landscape(loss_z_o, ansatz, f"{gate_name} (Zero-One, n = 2)")
     plot_3d_loss_landscape(
         loss_non_ent, ansatz, f"{gate_name} (Not Entangled, n = {num_data_points})"
@@ -186,7 +187,7 @@ def run_hadamard():
         ansatz="U2",
         print_info=False,
         num_data_points=1,
-        num_ticks=20,
+        num_ticks=10,
         fourier_plot=3,
     )
     # U3 visualization has troubles with different tick numbers -> maybe sample errors?
@@ -273,5 +274,5 @@ print("starting")
 
 #test_metrics_convergence()
 # run main() for all experiments
-# main()
+#run_hadamard()
 print("done")
