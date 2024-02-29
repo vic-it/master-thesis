@@ -176,8 +176,6 @@ class UnitaryParametrization(CudaQNN):
         return self.qnn().detach()
 
     def get_tensor_V(self):
-        print(type(self.params))
-        print(self.params.shape)
         return self.qnn()
 
 

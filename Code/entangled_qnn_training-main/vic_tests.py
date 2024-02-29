@@ -106,4 +106,7 @@ def run_full_experiment(num_qubits, num_unitaries = 5, num_tries = 5):
     end = time.time()
     print(f"total runtime: {np.round(end-start,2)}s")
 if __name__ == '__main__':
+    # one thread per core
+    torch.set_num_threads(1)
+    torch.multiprocessing.set_sharing_strategy('file_system')   
     run_full_experiment(2)

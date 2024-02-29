@@ -12,7 +12,6 @@ def cost_func(X, y_conj, qnn, device='cpu'):
     """
     Compute cost function 1/t * sum[|<x|U^t V|x>|^2]
     """
-    type(qnn.params)
     V = qnn.get_tensor_V()
     dot_products = torch.sum(torch.mul(torch.matmul(V, X), y_conj), dim=[1, 2])
     cost = (torch.sum(torch.square(dot_products.real)) + torch.sum(torch.square(dot_products.imag))) / X.shape[0]
