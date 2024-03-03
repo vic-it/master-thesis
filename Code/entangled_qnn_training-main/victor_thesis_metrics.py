@@ -40,6 +40,7 @@ def calc_scalar_curvature(landscape):
         gradient_vector = np.array(gradient_vector)
         # calculate scalar curvature from here
         beta = 1 / (1 + np.linalg.norm(gradient_vector) ** 2)
+        print("beta", beta)
         left_term = beta * (
             np.trace(point_hessian) ** 2
             - np.trace(np.matmul(point_hessian, point_hessian))
@@ -55,6 +56,7 @@ def calc_scalar_curvature(landscape):
         )
         point_curv = left_term + right_term
         scalar_curvature[idx] = point_curv
+        #print(scalar_curvature)
     return scalar_curvature
 
 
@@ -96,6 +98,23 @@ def calc_fourier_density(landscape):
     )
     return fourier_density
     #return fourier_density, fourier_result
+
+# calculates the fourier density by reshaping the fourier result to get an vector of Fourier coefficients
+def calculate_fourier_density(
+    landscape,
+) -> float:
+    fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
+
+    # reshape the fourier result into a vector according to the paper
+    vector_fourier_result = fourier_result.reshape(-1)
+
+    # sum the absolute values of each component of the vector
+    one_norm = np.sum(np.abs(vector_fourier_result))
+
+    # frobenius norm
+    two_norm = np.linalg.norm(vector_fourier_result)
+    return one_norm**2 / two_norm**2
+
 
 
 # get fourier landscape
