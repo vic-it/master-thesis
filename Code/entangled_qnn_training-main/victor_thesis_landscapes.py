@@ -57,7 +57,7 @@ def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
     for _ in range(dimensions):
         landscape_shape.append(grid_size)
     landscape_shape = tuple(landscape_shape)
-    landscape = np.empty(landscape_shape)
+    landscape = np.zeros(landscape_shape)
     # for every point
     for idx, _ in np.ndenumerate(landscape):  
         param_list = []      

@@ -40,7 +40,7 @@ def calc_scalar_curvature(landscape):
         gradient_vector = np.array(gradient_vector)
         # calculate scalar curvature from here
         beta = 1 / (1 + np.linalg.norm(gradient_vector) ** 2)
-        print("beta", beta)
+        #print("beta", beta)
         left_term = beta * (
             np.trace(point_hessian) ** 2
             - np.trace(np.matmul(point_hessian, point_hessian))
