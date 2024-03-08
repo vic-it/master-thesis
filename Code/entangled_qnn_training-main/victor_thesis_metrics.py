@@ -81,8 +81,6 @@ def calc_total_variation(landscape):
     gradients = np.gradient(np.array(landscape))
     # discretized version of integral is the sum
     total_variation = np.sum(np.absolute(gradients))
-    # normalize by adjusting for step size
-    # total_variation = total_variation * step_size
     return np.round(total_variation, 2)
 
 
@@ -101,8 +99,6 @@ def calc_IGSD(landscape):
     for dimension in gradients:
         gradient_standard_deviations.append(np.std(dimension))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
-    # normalize by number of ticks -> probably optional?
-    # inverse_gradient_standard_deviations = np.divide(inverse_gradient_standard_deviations, len(landscape))
     return np.round(inverse_gradient_standard_deviations, 2)
 
 
