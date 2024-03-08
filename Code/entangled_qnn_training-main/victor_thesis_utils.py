@@ -5,8 +5,15 @@ import numpy as np
 from utils import *
 
 
-# get plot metadata for different modes
 def get_meta_for_mode(mode, data, min_val, max_val, titles, o, gate_name, ansatz):
+    """function which calculates parameters for a 2d pyplot representing the data in whatever mode you want
+
+    Args:
+        mode (string): describes what kind of data you want to represent (default -> normal landscape, grad -> gradient magnitudes, log_scale -> logarithmic scale for coloring)
+
+    Returns:
+        different parameters for the pyplot
+    """
     low_threshold = 0.000000001
     if mode == "default":
         c_map = "plasma"
@@ -17,13 +24,12 @@ def get_meta_for_mode(mode, data, min_val, max_val, titles, o, gate_name, ansatz
     elif mode == "grad":
         c_map = "winter"
         sup_title = "Gradient Magnitudes"
-        # average gradient magnitude adjusted for sample frequency - not sure how to call this.
+        # average gradient magnitude adjusted for sample frequency
         title = f"GM Score: {np.round(np.average(data)*len(data), 2)}"
         v_min = min(min_val, 0)
         v_max = math.ceil(max_val * 100.0) / 100.0
     elif mode == "log_scale":
         v_max = 1
-        # v_min = min((min_val+low_threshold/18)*12, low_threshold)
         v_min = low_threshold
         c_map = "Greys"
         if min_val < low_threshold:
@@ -35,8 +41,14 @@ def get_meta_for_mode(mode, data, min_val, max_val, titles, o, gate_name, ansatz
     return c_map, sup_title, title, v_min, v_max
 
 
-# print expected output
 def print_expected_output(U, x, name):
+    """convience function to help print expected outputs of a unitary and input data points
+
+    Args:
+        U (tensor): a simple unitary matrix in tensor form
+        x (tensor): data points
+        name (string): name of the unitary/type of data
+    """
     print("====")
     expected_output = torch.matmul(U, x)
     np_arr = expected_output.detach().cpu().numpy()
@@ -44,21 +56,33 @@ def print_expected_output(U, x, name):
     print("====")
 
 
-# print datapoints
 def print_datapoints(points, title):
+    """a little helper to print data points to console more conveniently
+
+    Args:
+        points (torch tensor): tensor containing the data used to train a qnn
+        title (string): describes what kind of data points (i.e. entangled..)
+    """
     print("", title, " data points:")
     np_arr = points.detach().cpu().numpy()
     for i, row in enumerate(np_arr):
         print("---")
         for j, point in enumerate(row):
-            # idx = i * len(row) + j + 1
             print("", i, " - ", j, ":", point)
 
-#custom k-norm function as np.linalg norm behaves weirdly
-# note: this is the "entry wise" matrix norm, not a vector induced one. https://en.wikipedia.org/wiki/Matrix_norm
-def get_k_norm(arr,k):
+
+def get_k_norm(arr, k):
+    """this function calculates the entry wise k-norm for an n-dimensional array https://en.wikipedia.org/wiki/Matrix_norm
+
+    Args:
+        arr (array): n-dimensional array
+        k (int > 0): indicator of which norm you want to use (i.e. 1-norm, 2-norm, ...)
+
+    Returns:
+        int: the k-norm
+    """
     arr = np.array(arr)
     inner_sum = 0
     for num in np.nditer(arr):
-        inner_sum += np.absolute(num)**k
-    return inner_sum**(1./k)
+        inner_sum += np.absolute(num) ** k
+    return inner_sum ** (1.0 / k)

@@ -4,15 +4,15 @@ import numpy as np
 from data import *
 from generate_experiments import get_qnn
 import numpy as np
-from qnns.cuda_qnn import UnitaryParametrization
 from utils import *
-#from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
 def test_metrics_convergence():
+    """a function which tests whether the different metrics converge with a low a mount of samples and displays the results in different line graphs
+    """
     # hadamard U2
     qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
     num_qubits = 2
@@ -85,6 +85,20 @@ def run_experiment_on(
     num_ticks=20,
     fourier_plot=1,
 ):
+    """runs various tests and representations for 2D and 3D loss landscapes 
+    to test both metrics as well as the general implementation 
+    and to give a first look at how different levels of entanglement may affect a loss landscape
+
+    Args:
+        gate_name (string): name of the gate used
+        unitary (unitary): unitary that is emulated by the qnn
+        ansatz (string): name of the ansatz
+        print_info (bool, optional): whether or not you want to print the data points used as well as the expected outputs. Defaults to True.
+        num_data_points (int, optional): how many datapoints should be generated and used. Defaults to 1.
+        num_ticks (int, optional): the resolution of the loss landscape sampling. Defaults to 20.
+        fourier_plot (int, optional): of which kind of datapoints you want the fourier landscape plotted 
+            as the orqviz visualization has difficulties with more than one. Defaults to 1.
+    """
     qnn = get_qnn("Cuda" + ansatz, list(range(1)), 1, device="cpu")
     # generate data points
     non_entangled_inputs = generate_random_datapoints(num_data_points, 1, unitary)
@@ -111,55 +125,55 @@ def run_experiment_on(
         f"Entangled, n = {num_data_points}",
     ]
     multi_plot_landscape(landscapes, names, gate_name, ansatz)
-    # print advanced metrics
-    # print(
-    #     "TOTAL VARIATION: ",
-    #     calc_total_variation(landscapes[0]),
-    #     calc_total_variation(landscapes[1]),
-    #     calc_total_variation(landscapes[2]),
-    # )
-    # for landscape in landscapes:
-    #     igsd = calc_IGSD(landscape)
-    #     print("IGSD (dir 1): ", igsd[0])
-    #     print("IGSD (dir 2): ", igsd[1])
-    #     print("---------")
-    # # plot fourier stuff (can only plot one at a time?)
-    # print("Frequency Domain for Plot", fourier_plot)
-    # fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
-    # fd0, _ = calc_fourier_density(landscapes[0])
-    # print("FD3", fd0)
-    # fourier_result_non_ent = get_fourier_landscape(non_entangled_inputs, unitary, qnn)
-    # fd1, _ = calc_fourier_density(landscapes[1])
-    # print("FD3", fd1)
-    # fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
-    # fd2, _ = calc_fourier_density(landscapes[2])
-    # print("FD3", fd2)
-    # if fourier_plot == 1:
-    #     orqviz.fourier.plot_2D_fourier_result(
-    #         fourier_result_z_o, max_freq_x=10, max_freq_y=10
-    #     )
-    # elif fourier_plot == 2:
-    #     orqviz.fourier.plot_2D_fourier_result(
-    #         fourier_result_non_ent, max_freq_x=10, max_freq_y=10
-    #     )
-    # elif fourier_plot == 3:
-    #     orqviz.fourier.plot_2D_fourier_result(
-    #         fourier_result_ent, max_freq_x=10, max_freq_y=10
-    #     )
-    # # plot 3d scatter plots for U3 gate minimization
-    # loss_z_o_3d, points_z_o = generate_3D_loss_landscape_with_labels(
-    #     num_ticks, z_o_inputs, unitary
-    # )
-    # loss_non_ent_3d, points_non_ent = generate_3D_loss_landscape_with_labels(
-    #     num_ticks, non_entangled_inputs, unitary
-    # )
-    # loss_ent_3d, points_ent = generate_3D_loss_landscape_with_labels(
-    #     num_ticks, entangled_inputs, unitary
-    # )
-    # plot_scatter_of_U3(loss_z_o_3d, points_z_o, num_ticks)
-    # plot_scatter_of_U3(loss_non_ent_3d, points_non_ent, num_ticks)
-    # plot_scatter_of_U3(loss_ent_3d, points_ent, num_ticks)
-    # # plot basic 3d loss landscapes
+    #print advanced metrics
+    print(
+        "TOTAL VARIATION: ",
+        calc_total_variation(landscapes[0]),
+        calc_total_variation(landscapes[1]),
+        calc_total_variation(landscapes[2]),
+    )
+    for landscape in landscapes:
+        igsd = calc_IGSD(landscape)
+        print("IGSD (dir 1): ", igsd[0])
+        print("IGSD (dir 2): ", igsd[1])
+        print("---------")
+    # plot fourier stuff (can only plot one at a time?)
+    print("Frequency Domain for Plot", fourier_plot)
+    fourier_result_z_o = get_fourier_landscape(z_o_inputs, unitary, qnn)
+    fd0, _ = calc_fourier_density(landscapes[0])
+    print("FD3", fd0)
+    fourier_result_non_ent = get_fourier_landscape(non_entangled_inputs, unitary, qnn)
+    fd1, _ = calc_fourier_density(landscapes[1])
+    print("FD3", fd1)
+    fourier_result_ent = get_fourier_landscape(entangled_inputs, unitary, qnn)
+    fd2, _ = calc_fourier_density(landscapes[2])
+    print("FD3", fd2)
+    if fourier_plot == 1:
+        orqviz.fourier.plot_2D_fourier_result(
+            fourier_result_z_o, max_freq_x=10, max_freq_y=10
+        )
+    elif fourier_plot == 2:
+        orqviz.fourier.plot_2D_fourier_result(
+            fourier_result_non_ent, max_freq_x=10, max_freq_y=10
+        )
+    elif fourier_plot == 3:
+        orqviz.fourier.plot_2D_fourier_result(
+            fourier_result_ent, max_freq_x=10, max_freq_y=10
+        )
+    # plot 3d scatter plots for U3 gate minimization
+    loss_z_o_3d, points_z_o = generate_3D_loss_landscape_with_labels(
+        num_ticks, z_o_inputs, unitary
+    )
+    loss_non_ent_3d, points_non_ent = generate_3D_loss_landscape_with_labels(
+        num_ticks, non_entangled_inputs, unitary
+    )
+    loss_ent_3d, points_ent = generate_3D_loss_landscape_with_labels(
+        num_ticks, entangled_inputs, unitary
+    )
+    plot_scatter_of_U3(loss_z_o_3d, points_z_o, num_ticks)
+    plot_scatter_of_U3(loss_non_ent_3d, points_non_ent, num_ticks)
+    plot_scatter_of_U3(loss_ent_3d, points_ent, num_ticks)
+    # plot basic 3d loss landscapes
     plot_3d_loss_landscape(loss_z_o, ansatz, f"{gate_name} (Zero-One, n = 2)")
     plot_3d_loss_landscape(
         loss_non_ent, ansatz, f"{gate_name} (Not Entangled, n = {num_data_points})"
@@ -176,7 +190,9 @@ def run_experiment_on(
     # plot_3d_loss_landscape_curv(loss_ent, ansatz, "grad")
 
 
-def run_hadamard():
+def run_hadamard():    
+    """runs the experiments framework on the hadamard unitary
+    """
     # EXP on Hadamard
     U = torch.tensor(
         np.array([[1, 1], [1, -1]]) / np.sqrt(2), dtype=torch.complex128, device="cpu"
@@ -196,6 +212,8 @@ def run_hadamard():
 
 
 def run_pauli_x():
+    """runs the experiments framework on the pauli X unitary
+    """
     U = torch.tensor(np.array([[0, 1], [1, 0]]), dtype=torch.complex128, device="cpu")
     run_experiment_on(
         "Pauli-X",
@@ -209,6 +227,8 @@ def run_pauli_x():
 
 
 def run_pauli_y():
+    """runs the experiments framework on the pauli Y unitary
+    """
     U = torch.tensor(
         np.array([[0, -1j], [1j, 0]]), dtype=torch.complex128, device="cpu"
     )
@@ -224,6 +244,8 @@ def run_pauli_y():
 
 
 def run_pauli_z():
+    """runs the experiments framework on the pauli Z unitary
+    """
     U = torch.tensor(np.array([[1, 0], [0, -1]]), dtype=torch.complex128, device="cpu")
     run_experiment_on(
         "Pauli-Z",
@@ -237,6 +259,8 @@ def run_pauli_z():
 
 
 def run_phase_s():
+    """runs the experiments framework on the phase (S) unitary
+    """
     U = torch.tensor(np.array([[1, 0], [0, 1j]]), dtype=torch.complex128, device="cpu")
     run_experiment_on(
         "Phase-S",
@@ -249,7 +273,9 @@ def run_phase_s():
     )
 
 
-def run_random_unitary():    
+def run_random_unitary():   
+    """runs the experiments framework on a randomly generated unitary
+    """ 
     U = torch.tensor(np.array(random_unitary_matrix(1)), dtype=torch.complex128, device="cpu")
     run_experiment_on(
         "Random Unitary",
@@ -272,7 +298,6 @@ def main():
 print("starting")
 
 
-#test_metrics_convergence()
 # run main() for all experiments
 #run_hadamard()
 print("done")

@@ -5,15 +5,22 @@ from data import *
 from generate_experiments import get_qnn
 import numpy as np
 from utils import *
-#from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
 
-# gen datapoints
 def generate_random_datapoints(numb_points, s_rank, U):
+    """generates random sample datapoints for a qnn
+
+    Args:
+        numb_points (int): the number of datapoints you want to generate
+        s_rank (int): the schmidt rank ("level of entanglement") of the data points (with the actual qbits and the qbits for the reference system) 
+        U (unitary): unitary
+    Returns:
+        tensor: data points used as qubit inputs for qnns
+    """
     schmidt_rank = s_rank
     num_points = numb_points
     x_qbits = 1
@@ -27,20 +34,30 @@ def generate_random_datapoints(numb_points, s_rank, U):
     return inputs
 
 
-# get zero/one datapoints
 def get_zero_one_datapoints():
+    """generates zero and one vectors as data points
+
+    Returns:
+        tensor: a tensor containing the zero and the one vector as data points
+    """
     zero_state = np.array([[1], [0]], dtype=complex)
     one_state = np.array([[0], [1]], dtype=complex)
-    #super_pos_state = np.array([[1], [1]], dtype=complex) / np.sqrt(2)
     tensor = torch.tensor(np.array([zero_state, one_state]))
     return tensor
-    # inputs = torch.from_numpy(np.array([zero_state, one_state], dtype=complex))
-    # print(inputs.size())
-    # inputs = inputs.reshape((inputs.shape[0], int(inputs.shape[1] / U.shape[0]), U.shape[0])).permute(0, 2, 1)
-    # return inputs
 
 # gen n-d loss landscape
 def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
+    """generates an n-dimensional loss landscape
+
+    Args:
+        grid_size (int): the sampling resolution in every dimension(=direction)
+        dimensions (int): how many dimensions should be sampled
+        inputs (tensor): a tensor of data points for which the qnn will be evaluated
+        U (unitary): the unitary which the qnn is trying to emulate
+
+    Returns:
+        array: n dimensional loss landscape
+    """
     x = inputs
     expected_output = torch.matmul(U, x)
     y_true = expected_output.conj()
@@ -73,6 +90,16 @@ def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
 
 # gen 2D loss landscape
 def generate_2d_loss_landscape(grid_size, inputs, U, qnn):
+    """generates a 2D loss landscape
+
+    Args:
+        grid_size (int): the sampling resolution for the loss landscape
+        inputs (tensor): tensor representation of the data points given to the qnn
+        U (unitary): unitary which the qnn tries to emulate
+
+    Returns:
+        array: a 2D loss landscape
+    """
     landscape = []
     lanscape_limit = 2 * math.pi
     step_size = lanscape_limit / grid_size
@@ -99,6 +126,18 @@ def generate_2d_loss_landscape(grid_size, inputs, U, qnn):
 
 # gen 3D loss landscape for U3
 def generate_3D_loss_landscape_with_labels(grid_size, inputs, U):
+    """generates a 3D loss landscape using the PennyLane (U3) ansatz
+    also returns the labels for if you want to plot this landscape
+
+    Args:
+        grid_size (int): sets the resolution of the resulting loss landscape
+        inputs (tensor): a tensor of data points for which the qnn will be evaluated
+        U (unitary): the unitary which the qnn is trying to emulate
+
+    Returns:
+        array: a 3D loss landscape
+        array: the labels for the landscape
+    """
     qnn = get_qnn("CudaPennylane", list(range(1)), 1, device="cpu")
     landscape = []
     x_array = []
@@ -131,9 +170,19 @@ def generate_3D_loss_landscape_with_labels(grid_size, inputs, U):
     points.append(y_array)
     points.append(z_array)
     return landscape, points
+ 
 
-# gen 3D loss landscape for U3
 def generate_3D_loss_landscape(grid_size, inputs, U):
+    """generates a 3D loss landscape using the PennyLane (U3) ansatz
+
+    Args:
+        grid_size (int): sets the resolution of the resulting loss landscape
+        inputs (tensor): a tensor of data points for which the qnn will be evaluated
+        U (unitary): the unitary which the qnn is trying to emulate
+
+    Returns:
+        array: a 3D loss landscape
+    """
     qnn = get_qnn("CudaPennylane", list(range(1)), 1, device="cpu")
     landscape = []
     lanscape_limit = 2 * math.pi

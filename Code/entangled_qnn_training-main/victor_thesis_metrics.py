@@ -13,6 +13,17 @@ from victor_thesis_metrics import *
 
 # n-dimensional scalar curvature
 def calc_scalar_curvature(landscape):
+    """calculates the scalar curvature of a loss landscape
+    instead of calculating the whole n dimensional curvature array (same size as the input landscape)
+    this function calculates the scalar curvature at each entry of the n dimensional landscape 
+    and puts them back together into an output array
+
+    Args:
+        landscape (array): n dimensional loss landscape array
+
+    Returns:
+        array: n dimensional scalar curvature array
+    """
     landscape = np.array(landscape)
     scalar_curvature = np.ndarray(landscape.shape)
     dims = len(landscape.shape)
@@ -40,7 +51,6 @@ def calc_scalar_curvature(landscape):
         gradient_vector = np.array(gradient_vector)
         # calculate scalar curvature from here
         beta = 1 / (1 + np.linalg.norm(gradient_vector) ** 2)
-        #print("beta", beta)
         left_term = beta * (
             np.trace(point_hessian) ** 2
             - np.trace(np.matmul(point_hessian, point_hessian))
@@ -56,12 +66,15 @@ def calc_scalar_curvature(landscape):
         )
         point_curv = left_term + right_term
         scalar_curvature[idx] = point_curv
-        #print(scalar_curvature)
     return scalar_curvature
 
 
-# calculate Total Variation (n-dim)
 def calc_total_variation(landscape):
+    """calculates the total variation of a landscape
+
+    Args:
+        landscape (array): n dimensional loss landscape as an n dimensional array
+    """
     lanscape_limit = 2 * math.pi
     length = np.array(landscape).shape[0]
     step_size = lanscape_limit / length
@@ -69,12 +82,19 @@ def calc_total_variation(landscape):
     # discretized version of integral is the sum
     total_variation = np.sum(np.absolute(gradients))
     # normalize by adjusting for step size
-    #total_variation = total_variation * step_size
+    # total_variation = total_variation * step_size
     return np.round(total_variation, 2)
 
 
-# calculate IGSD (n-dim)
 def calc_IGSD(landscape):
+    """calculates the inverse gradient standard deviation of a landscape
+
+    Args:
+        landscape (array): n dimensional loss landscape array
+
+    Returns:
+        array: returns a list of IGSDs, one for each dimension 
+    """
     gradients = np.gradient(np.array(landscape))
     # each array of the gradients encompasses the gradients for one dimension/direction/parameter
     gradient_standard_deviations = []
@@ -82,27 +102,36 @@ def calc_IGSD(landscape):
         gradient_standard_deviations.append(np.std(dimension))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
     # normalize by number of ticks -> probably optional?
-    #inverse_gradient_standard_deviations = np.divide(inverse_gradient_standard_deviations, len(landscape))
+    # inverse_gradient_standard_deviations = np.divide(inverse_gradient_standard_deviations, len(landscape))
     return np.round(inverse_gradient_standard_deviations, 2)
 
 
-# calculate fourier densitiy (n-dim)
-def calc_fourier_density(landscape):
-    #fourier_result = np.fft.fftn(landscape, norm="forward")
-    # norm "backward" and "ortho" give MUCH higher results than "forward"
-    # as they normalize by 1/n for the direction given, (or 1/sqrt(n) on both directions for ortho) for some reason
+def calc_fourier_density(landscape) -> float:
+    """same as calculate_fourier_density below 
+    but with custom k-norm function and rounded to 6 digits
+
+    Args:
+        landscape (array): n dimensional landscape array
+
+    """
     fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
     fourier_density = round(
-        (get_k_norm(fourier_result,1) ** 2) / (get_k_norm(fourier_result,2) ** 2),
+        (get_k_norm(fourier_result, 1) ** 2) / (get_k_norm(fourier_result, 2) ** 2),
         6,
     )
     return fourier_density
-    #return fourier_density, fourier_result
+
 
 # calculates the fourier density by reshaping the fourier result to get an vector of Fourier coefficients
 def calculate_fourier_density(
     landscape,
 ) -> float:
+    """calculates the fourier density of a given landscape
+
+    Args:
+        landscape (array): n-dim landscape
+
+    """
     fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
 
     # reshape the fourier result into a vector according to the paper
@@ -116,9 +145,15 @@ def calculate_fourier_density(
     return one_norm**2 / two_norm**2
 
 
+def get_fourier_landscape(inputs, U, qnn, steps=60):
+    """a much too complicated way to calculate the fourier landscape and density 
+    with the orqviz scan 2d fourier function.
 
-# get fourier landscape
-def get_fourier_landscape(inputs, U, qnn, steps = 60):
+    Args:
+        inputs (tensor): tensor representation of the data points used to train the qnn
+        U (unitary): unitary
+        steps (int, optional): how many frequencies do you want to look at. Defaults to 60.
+    """
     def loss_function(params):
         qnn.params = torch.tensor(
             [[[params[0], params[1]]]], dtype=torch.float64, requires_grad=True
@@ -152,23 +187,30 @@ def get_fourier_landscape(inputs, U, qnn, steps = 60):
     )
     print("FD lib with np linalg norms:", fourier_density)
     fourier_density = round(
-        (get_k_norm(fourier_result.values,1) ** 2)
+        (get_k_norm(fourier_result.values, 1) ** 2)
         / (np.linalg.norm(np.array(fourier_result.values), ord=2) ** 2),
         3,
     )
-    print("FD lib with semi custom norms:", fourier_density)    
-    
+    print("FD lib with semi custom norms:", fourier_density)
+
     fourier_density = round(
-        (get_k_norm(fourier_result.values,1) ** 2)
-        / (get_k_norm(fourier_result.values,2) ** 2),
+        (get_k_norm(fourier_result.values, 1) ** 2)
+        / (get_k_norm(fourier_result.values, 2) ** 2),
         3,
     )
     print("FD lib with full custom norms:", fourier_density)
     return fourier_result
 
 
-# get grad curvature
-def get_grad_curv(landscape):
+def calc_grad_curv(landscape):
+    """calculates the gradient curvature (custom metric consisting of the second order gradient magnitudes) for a given landscape
+
+    Args:
+        landscape (array): landscape of which you want to calculate the curvature
+
+    Returns:
+        array: array of curvature for every point in the landscape
+    """
     first_order_gradients = np.gradient(np.array(landscape))
     second_order_gradients = []
     for grad in first_order_gradients:

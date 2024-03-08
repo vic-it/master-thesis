@@ -6,16 +6,26 @@ import matplotlib
 import matplotlib as mpl
 from utils import *
 from matplotlib import cm
-#from victor_thesis_experiments import *
+
+# from victor_thesis_experiments import *
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
-#from victor_thesis_utils import get_meta_for_mode
+
+# from victor_thesis_utils import get_meta_for_mode
 
 
 # plot a row of datasets
 def plot_row(in_data, titles, gate_name, ansatz, mode="default"):
+    """gets a set of data (i.e. a few loss landscapes) and plots them in a row with a selected mode
+
+    Args:
+        in_data (array): set of 2D data (i.e. loss landscapes)
+        titles (_type_): _description_
+        ansatz (string): name of ansatz
+        mode (str, optional): which mode to display in, default, logarithmic scale or gradient magnitudes. Defaults to "default".
+    """
     width = len(in_data)
     min_val = np.min(in_data)
     max_val = np.max(in_data)
@@ -69,27 +79,37 @@ def plot_row(in_data, titles, gate_name, ansatz, mode="default"):
     fig.suptitle(sup_title, x=0.43)
     plt.show()
 
-# test for convergence of metrics for U2 gate
-def plot_metrics_convergence(non_entangled_metric_data, entangled_metric_data, metric_name, min_ticks):
+
+def plot_metrics_convergence(
+    non_entangled_metric_data, entangled_metric_data, metric_name, min_ticks
+):
+    """a helper function to visualize whether or not certain metrics converge with fewer ticks
+    """
     fig, axes = plt.subplots(1, len(entangled_metric_data))
     fig.suptitle(f"{metric_name} for {len(entangled_metric_data)} runs")
-    x = range(min_ticks, len(entangled_metric_data[0])+min_ticks,1)
-    for run_id in range(len(entangled_metric_data)):        
+    x = range(min_ticks, len(entangled_metric_data[0]) + min_ticks, 1)
+    for run_id in range(len(entangled_metric_data)):
         axes[run_id].plot(x, non_entangled_metric_data[run_id], label="non entangled")
-        axes[run_id].plot(x, entangled_metric_data[run_id], label ="entangled") 
+        axes[run_id].plot(x, entangled_metric_data[run_id], label="entangled")
     plt.ylabel("value of metric")  # add Y-axis label
     plt.xlabel("ticks")  # add X-axis label
     fig.tight_layout()
     plt.legend()
     plt.show()
 
+
 # plots 2d fourier landscapes
 def plot_fourier_row(landscapes, titles):
+    """takes the frequency representation of a set of 2D loss landscapes and plots them in a row
+
+    Args:
+        landscapes (array): fourier representations of 2D loss landscapes
+    """
     landscapes = np.array(landscapes)
     width = len(landscapes)
     min_val = 0
     max_val = 0.7
-    fig, ax = plt.subplots(1, width, figsize=(9, 3))    
+    fig, ax = plt.subplots(1, width, figsize=(9, 3))
     for data_idx in range(width):
         data = landscapes[data_idx]
         length = len(data)
@@ -122,16 +142,18 @@ def plot_fourier_row(landscapes, titles):
         ax[data_idx].set_title(titles[data_idx])
     fig.colorbar(im, ax=ax.ravel().tolist(), shrink=0.58)
     plt.subplots_adjust(left=0.1, bottom=0.1, right=0.75, top=0.9, wspace=0.7)
-    #fig.suptitle(sup_title, x=0.43)
     plt.show()
 
 
-
-
-
-
-# 3D scatter plot of U3 Gate
 def plot_scatter_of_U3(landscape, points, ticks):
+    """takes a 3D loss landscape (generated with U3 gate) and plots it as a 3D scatter plot,
+      where the opacity of each sample is logarithmically proportional to its value, 
+      highlighting global minima
+
+    Args:
+        landscape (array): 3D loss landscape
+        points (array): contains the positions of the sampled points
+    """
     fig = plt.figure(figsize=(8, 8))
     ax = fig.add_subplot(projection="3d")
     v_min = 0.000000001
@@ -154,7 +176,7 @@ def plot_scatter_of_U3(landscape, points, ticks):
         c=values,
         cmap=cmap_rb,
         norm=matplotlib.colors.LogNorm(vmin=v_min, vmax=v_max),
-        depthshade=0
+        depthshade=0,
     )
     # set labels
     length = 6
@@ -165,9 +187,8 @@ def plot_scatter_of_U3(landscape, points, ticks):
         x_labels.append(n)
     x_labels = x_labels
     y_labels = x_labels
-    z_labels = x_labels  # just for fun
+    z_labels = x_labels
     # set label ticks
-    # labels not really working
     tick_density = int(length / 5)
     ax.set_xticks(np.arange(len(x_labels)), labels=x_labels)
     ax.set_yticks(np.arange(len(x_labels)), labels=y_labels)
@@ -188,9 +209,15 @@ def plot_scatter_of_U3(landscape, points, ticks):
     plt.show()
 
 
-# plot 3D loss landscape
-# https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html
 def plot_3d_loss_landscape(landscape, ansatz, title):
+    """takes a 2D landscape and plots it in 3D where the third dimension 
+    (as well as the coloring) corresponds to the value of each entry
+    (https://matplotlib.org/stable/gallery/images_contours_and_fields/image_annotated_heatmap.html)
+
+    Args:
+        landscape (array): 2D array representing a 2D landscape
+        ansatz (string): name of ansatz
+    """
     ls = np.array(landscape)
     min_val = np.min(ls)
     max_val = np.max(ls)
@@ -202,7 +229,6 @@ def plot_3d_loss_landscape(landscape, ansatz, title):
         x_labels.append(n)
     y_labels = reversed(x_labels)
     fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-    # im = ax.imshow(ls, cmap = "plasma",vmin=min(min_val, 0), vmax=max(max_val,1))
     X = np.arange(0, length, 1)
     Y = np.arange(0, length, 1)
     X, Y = np.meshgrid(X, Y)
@@ -226,16 +252,20 @@ def plot_3d_loss_landscape(landscape, ansatz, title):
     plt.show()
 
 
-# plot 3D loss landscape with curvature coloring
 def plot_3d_loss_landscape_curv(landscape, ansatz, curv_mode="scalar"):
+    """generates a 3D plot of a 2D landscape where the third dimension (height) 
+    corresponds to the values of the landscape and the coloring corresponds to the curvature
+
+    Args:
+        landscape (array): 2D array of a loss landscape
+        ansatz (string): name of the ansatz
+        curv_mode (str, optional): What kind of curvature you want to display. Defaults to "scalar".
+    """
     landscape = np.array(landscape)
     if curv_mode == "scalar":
         curv = calc_scalar_curvature(landscape)
     elif curv_mode == "grad":
         curv = get_grad_curv(landscape)
-    # normalize from -1 to 1
-    # max_entry = np.max(np.absolute(curv))
-    # curv = curv/max_entry
     min_val = np.min(curv)
     max_val = np.max(curv)
     length = len(curv)
@@ -245,7 +275,7 @@ def plot_3d_loss_landscape_curv(landscape, ansatz, curv_mode="scalar"):
         n = f"{np.round(i*2/length,1)} $\\pi$"
         x_labels.append(n)
     y_labels = reversed(x_labels)
-    fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+    _, ax = plt.subplots(subplot_kw={"projection": "3d"})
     X = np.arange(0, length, 1)
     Y = np.arange(0, length, 1)
     X, Y = np.meshgrid(X, Y)
@@ -263,8 +293,6 @@ def plot_3d_loss_landscape_curv(landscape, ansatz, curv_mode="scalar"):
     ax.set_xticks(ax.get_xticks()[::tick_density])
     ax.set_yticks(ax.get_yticks()[::tick_density])
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-    # cbar = ax.figure.colorbar(im, ax=ax)
-    # cbar.ax.set_ylabel("Loss", rotation=-90, va="bottom")
     m = cm.ScalarMappable(cmap=c_map, norm=norm)
     m.set_array([])
     plt.colorbar(m)
@@ -272,8 +300,15 @@ def plot_3d_loss_landscape_curv(landscape, ansatz, curv_mode="scalar"):
     plt.show()
 
 
-# multi plot with gradients
 def multi_plot_landscape(landscapes, titles, gate_name, ansatz):
+    """takes a set of landscapes (usually three) and generates three rows, 
+    each with all landscapes but in different representations 
+    (default, logscale and gradient magnitude)
+
+    Args:
+        landscapes (array): array of landscapes (which also happen to be ndim arrays)
+        titles (string array): the captions for the plots
+    """
     data = np.array(landscapes)
     # calculate gradient magnitudes
     gradient_magnitudes = []
