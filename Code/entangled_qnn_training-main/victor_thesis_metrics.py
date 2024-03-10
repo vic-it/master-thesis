@@ -90,6 +90,7 @@ def calc_total_variation(landscape):
     # discretized version of integral is the sum
     total_variation = np.sum(magnitudes)
     # normalize it by step size
+    #using dimensions -1 gives more stable results w.r.t. the number of samples per dimension
     total_variation = total_variation * step_size**(dimensions)
     return np.round(total_variation, 3)
 
@@ -109,7 +110,7 @@ def calc_IGSD(landscape):
     for dimension in gradients:
         gradient_standard_deviations.append(np.std(dimension))
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
-    return np.round(inverse_gradient_standard_deviations, 2)
+    return np.round(inverse_gradient_standard_deviations, 3)
 
 
 def calc_fourier_density(landscape) -> float:

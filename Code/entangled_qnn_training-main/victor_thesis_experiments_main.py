@@ -158,7 +158,7 @@ def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qub
     and how many data points, as well as a unitary for reshaping purposes
 
     Args:
-        type_of_data (int): describes what type of data to use (0=random, 1=orthogonal, 2=linearly dependent in H_x, 3= variable schmidt rank)
+        type_of_data (int): describes what type of data to use (1=random, 2=orthogonal, 3=linearly dependent in H_x, 4= variable schmidt rank)
         schmidt_rank (int): what level of entanglement should the data have
         num_data_points (int): how many data points you want
         U (unitary): a unitary for reshaping of the data points
@@ -172,23 +172,24 @@ def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qub
     # print("num of points", num_data_points)
     raw_input = 0
     x_qubits = num_qubits
-    r_qubits = schmidt_rank - x_qubits
+    r_qubits = x_qubits
     #fake data for testing purposes
-    d = torch.from_numpy(
-            np.array(
-                uniform_random_data(1, 4, 1, 2)
-            ))
-    return d.reshape(
-        (d.shape[0], int(d.shape[1] / U.shape[0]), U.shape[0])
-    ).permute(0, 2, 1)
+    # d = torch.from_numpy(
+    #         np.array(
+    #             uniform_random_data(1, 4, 1, 2)
+    #         ))
+    # return d.reshape(
+    #     (d.shape[0], int(d.shape[1] / U.shape[0]), U.shape[0])
+    # ).permute(0, 2, 1)
     #fake data end, delete until here for normal data
-    if type_of_data == 0:
+    if type_of_data == 1:
+        print(0)
         raw_input = torch.from_numpy(
             np.array(
                 uniform_random_data(schmidt_rank, num_data_points, x_qubits, r_qubits)
             )
         )
-    elif type_of_data == 1:
+    elif type_of_data == 2:
         raw_input = torch.from_numpy(
             np.array(
                 uniformly_sample_orthogonal_points(
@@ -196,7 +197,7 @@ def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qub
                 )
             )
         )
-    elif type_of_data == 2:
+    elif type_of_data == 3:
         raw_input = torch.from_numpy(
             np.array(
                 sample_non_lihx_points(
@@ -204,7 +205,7 @@ def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qub
                 )
             )
         )
-    elif type_of_data == 3:
+    elif type_of_data == 4:
         raw_input = torch.from_numpy(
             np.array(
                 uniform_random_data_average_evenly(
