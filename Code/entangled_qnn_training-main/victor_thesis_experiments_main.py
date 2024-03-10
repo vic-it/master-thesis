@@ -152,7 +152,7 @@ def store_configs_to_file(unitaries, configurations, experiment_id):
                     conf_id += 1
 
 
-def generate_data_points(type_of_data, schmidt_rank, num_data_points, U):
+def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qubits):
     """generates data points given a configuration consisting of the type of data point, 
     the schmidt rank (level of entanglement) 
     and how many data points, as well as a unitary for reshaping purposes
@@ -162,13 +162,26 @@ def generate_data_points(type_of_data, schmidt_rank, num_data_points, U):
         schmidt_rank (int): what level of entanglement should the data have
         num_data_points (int): how many data points you want
         U (unitary): a unitary for reshaping of the data points
+        num_qubits (int): the amount of wires/x_qubits for the chosen ansatz
 
     Returns:
         tensor: a tensor of data points that can be used for the experiments
     """
+    # print("type",type_of_data)
+    # print("schmidt-rank", schmidt_rank)
+    # print("num of points", num_data_points)
     raw_input = 0
-    x_qubits = 1
+    x_qubits = num_qubits
     r_qubits = schmidt_rank - x_qubits
+    #fake data for testing purposes
+    d = torch.from_numpy(
+            np.array(
+                uniform_random_data(1, 4, 1, 2)
+            ))
+    return d.reshape(
+        (d.shape[0], int(d.shape[1] / U.shape[0]), U.shape[0])
+    ).permute(0, 2, 1)
+    #fake data end, delete until here for normal data
     if type_of_data == 0:
         raw_input = torch.from_numpy(
             np.array(
@@ -240,8 +253,10 @@ def run_full_experiment():
     where a unitary/datapoint config will run all 5 sets of datapoints (data batch) on one core
     with many of these combinations running in parallel
     """
+    num_layers = 1
+    num_qubits = 2
     num_unitaries = 5
-    num_tries = 5
+    num_tries = 1
     grid_size = 3
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
@@ -266,7 +281,7 @@ def run_full_experiment():
     os.makedirs("experimental_results/configs", exist_ok=True)
     os.makedirs("experimental_results/results", exist_ok=True)
     # generate a U3 ansatz containing 2 layers -> 6 params
-    qnn = CudaPennylane(num_wires=1, num_layers=2, device="cpu")
+    qnn = CudaPennylane(num_wires=num_qubits, num_layers=num_layers, device="cpu")
 
     unitaries = []
     # [type_of_data][num_data_points][deg_of_entanglement][id_unitary][id_try]
@@ -275,7 +290,7 @@ def run_full_experiment():
         # generate a random unitary with num_qubits qubits (why are they the same?)
         unitaries.append(
             torch.tensor(
-                np.array(random_unitary_matrix(1)),
+                np.array(random_unitary_matrix(num_qubits)),
                 dtype=torch.complex128,
                 device="cpu",
             )
@@ -305,7 +320,7 @@ def run_full_experiment():
                                 type_of_data,
                                 deg_of_entanglement,
                                 num_data_points,
-                                unitary,
+                                unitary, num_qubits
                             )
                             data_batch_for_unitary.append(data_points)
                         # run this per configuration unitary (5 sets of data -> take average and stdv...)
