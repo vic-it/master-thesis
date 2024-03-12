@@ -155,7 +155,7 @@ def store_configs_to_file(unitaries, configurations, experiment_id):
 def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qubits):
     """generates data points given a configuration consisting of the type of data point, 
     the schmidt rank (level of entanglement) 
-    and how many data points, as well as a unitary for reshaping purposes
+    and the number of data points, as well as a unitary for reshaping purposes
 
     Args:
         type_of_data (int): describes what type of data to use (1=random, 2=orthogonal, 3=linearly dependent in H_x, 4= variable schmidt rank)
@@ -167,23 +167,11 @@ def generate_data_points(type_of_data, schmidt_rank, num_data_points, U, num_qub
     Returns:
         tensor: a tensor of data points that can be used for the experiments
     """
-    # print("type",type_of_data)
-    # print("schmidt-rank", schmidt_rank)
-    # print("num of points", num_data_points)
+
     raw_input = 0
     x_qubits = num_qubits
     r_qubits = x_qubits
-    #fake data for testing purposes
-    # d = torch.from_numpy(
-    #         np.array(
-    #             uniform_random_data(1, 4, 1, 2)
-    #         ))
-    # return d.reshape(
-    #     (d.shape[0], int(d.shape[1] / U.shape[0]), U.shape[0])
-    # ).permute(0, 2, 1)
-    #fake data end, delete until here for normal data
     if type_of_data == 1:
-        print(0)
         raw_input = torch.from_numpy(
             np.array(
                 uniform_random_data(schmidt_rank, num_data_points, x_qubits, r_qubits)
@@ -257,7 +245,7 @@ def run_full_experiment():
     num_layers = 1
     num_qubits = 2
     num_unitaries = 5
-    num_tries = 1
+    num_tries = 5
     grid_size = 3
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
@@ -302,7 +290,7 @@ def run_full_experiment():
     conf_id = 0
     # cpu_count()
     with ProcessPoolExecutor(cpu_count()) as exe:
-        # iterate over  type of training data: 0=random, 1=orthogonal, 2=linearly dependent in H_x, 3= variable schmidt rank
+        # iterate over  type of training data: 1=random, 2=orthogonal, 3=linearly dependent in H_x, 4= variable schmidt rank
         for type_of_data in range(1, 5, 1):
             num_data_points_row = []
             # iterate over training data size 1 to 4

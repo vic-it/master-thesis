@@ -195,14 +195,12 @@ def uniform_random_data_average_evenly(schmidt_rank: int, size: int, x_qbits: in
     in the range for small number of t."""
     # allowed range
     rank_range_pos = get_rank_range(schmidt_rank, 2**x_qbits)[1] - schmidt_rank
+    data = []
     if r_qbits < x_qbits:
         raise "Reference system too small to hold maximally entangled sample."
     if size % 2 != 0:
-        if size == 1:
-            return [uniformly_sample_random_point(schmidt_rank, x_qbits, r_qbits)]
-        else:
-            raise "Can only generate inputs of even size t."
-    data = []
+        data.append(uniformly_sample_random_point(schmidt_rank, x_qbits, r_qbits))
+        size -= 1
     # size = number data samples of trainset
     for i in range(int(size/2)):
         # sample rank offset

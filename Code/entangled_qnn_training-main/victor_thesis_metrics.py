@@ -81,14 +81,7 @@ def calc_total_variation(landscape):
     length = np.array(landscape).shape[0]
     step_size = lanscape_limit / length
     gradients = np.gradient(np.array(landscape))
-    magnitudes = []
-    for idx, _ in np.ndenumerate(gradients[0]):
-        entry_sum=0
-        for dim in range(dimensions):
-            entry_sum += gradients[dim][idx]**2
-        magnitudes.append(np.sqrt(entry_sum))
-    # discretized version of integral is the sum
-    total_variation = np.sum(magnitudes)
+    total_variation = np.sum(np.absolute(gradients))
     # normalize it by step size
     #using dimensions -1 gives more stable results w.r.t. the number of samples per dimension
     total_variation = total_variation * step_size**(dimensions)
@@ -109,7 +102,10 @@ def calc_IGSD(landscape):
     gradient_standard_deviations = []
     for dimension in gradients:
         gradient_standard_deviations.append(np.std(dimension))
+
     inverse_gradient_standard_deviations = np.divide(1, gradient_standard_deviations)
+
+    #print(landscape)
     return np.round(inverse_gradient_standard_deviations, 3)
 
 
