@@ -88,7 +88,7 @@ def comp_basis(dim, i):
     e[i] = 1
     return e
 
-def randomized_bell_basis_state(n, m, d, r):
+def randomized_bell_basis_state(n, m, d, r, r_qubits):
     """Generates bell basis state according to paper with randomized coefficient"""
     # reference system has dimension r, working system has dimension d
     # no check is made if those dimensions are powers of 2
@@ -96,25 +96,15 @@ def randomized_bell_basis_state(n, m, d, r):
     # (which is the largest "tag" used in the reference system)
     # to match the training processes, the reference system is the first
     # (leftmost) system and the target system is second
-    if r == 1:
-        dim_r = 0
-        point = np.zeros((d), dtype=np.complex128)
-        # no entanglement => just sample from comp basis
-        for k in range(0, r):
-            coeff = np.random.random()
-            vec = comp_basis(d, ((k+m)%d))
-            point += coeff * np.exp((1j*2*np.pi/r)*n*k) * vec
-        return normalize(point)
-    else:
-        qubits_r = int(np.floor(math.log(r-1,2))+1)
-        dim_r = 2**qubits_r
-        #print("Dim r: ", dim_r)
-        point = np.zeros((d*dim_r), dtype=np.complex128)
-        for k in range(0, r):
-            coeff = np.random.random()
-            vec = np.kron(comp_basis(dim_r, k), comp_basis(d, ((k+m)%d)))
-            point += coeff * np.exp((1j*2*np.pi/r)*n*k) * vec
-        return normalize(point)
+    qubits_r = r_qubits
+    dim_r = 2**qubits_r
+    #print("Dim r: ", dim_r)
+    point = np.zeros((d*dim_r), dtype=np.complex128)
+    for k in range(0, r):
+        coeff = np.random.random()
+        vec = np.kron(comp_basis(dim_r, k), comp_basis(d, ((k+m)%d)))
+        point += coeff * np.exp((1j*2*np.pi/r)*n*k) * vec
+    return normalize(point)
 
 def uniformly_sample_orthogonal_points(schmidt_rank: int, size: int, x_qubits: int, r_qubits: int, modify=True):
     """Generates a set of orthogonal points for learning. The points all have the given schmidt rank
@@ -135,7 +125,7 @@ def uniformly_sample_orthogonal_points(schmidt_rank: int, size: int, x_qubits: i
     # we generated them with m = r*j for varying 0<=j<t. This way (from the construction of the vectors),
     # we will obtain a set that only uses orthogonal vectors in H_X
     # n is kept at 0
-    comp_basis_states = [randomized_bell_basis_state(n, schmidt_rank*j, 2**x_qubits, schmidt_rank) for n in range(0, 1) for j in range(0, size)]
+    comp_basis_states = [randomized_bell_basis_state(n, schmidt_rank*j, 2**x_qubits, schmidt_rank, r_qubits) for n in range(0, 1) for j in range(0, size)]
     # transform the states
     if modify:
         transformed_states = [combined_transform @ state for state in comp_basis_states]
@@ -289,12 +279,26 @@ def generate_dependent_base(base_size, original_base):
         newbase.append(x_coeffs[0] * elemA + x_coeffs[1] * elemB)
         # B part
         newbase.append(y_coeffs[0] * elemA - y_coeffs[1] * elemB)
+    if base_size%2 == 1:
+        # sample unitary 
+        T = unitary_group.rvs(2)
+        x_coeffs = T @ np.array([1,0])
+        y_coeffs = T @ np.array([0,1])
+        # pick and remove two elements
+        elemA = cbase.pop(random.randint(0, len(cbase)-1))
+        elemB = original_base[0]
+
+        # A part
+        newbase.append(x_coeffs[0] * elemA + x_coeffs[1] * elemB)
 
     return newbase
 
 def generate_point_from_vecs(schmidt_rank, vecs_x, vecs_r, dim_x, dim_r):
     point = np.zeros((dim_x * dim_r), dtype=np.complex128)
     coeffs = normalize(np.random.random_sample(schmidt_rank))
+    # print("c",len(coeffs))
+    # print("r",len(vecs_r))
+    # print("x",len(vecs_x))
     for k in range(0, schmidt_rank):
         point += coeffs[k] * np.kron(vecs_r[k], vecs_x[k])
     return point
@@ -316,15 +320,16 @@ def sample_non_lihx_points(schmidt_rank: int, size: int, x_qubits: int, r_qubits
 
     # Now create the inputs by assigning vectors from a schmidt_rank * size element basis to the reference system
     refdim = schmidt_rank * size
-    compb = [comp_basis(refdim, i) for i in range(0, refdim)]
+    dim_r = 2**r_qubits
+    compb = [comp_basis(dim_r, i%dim_r) for i in range(0, refdim)]
     
     finalpoints = []
     for i in range(0, size):
-        refamount = max(2, schmidt_rank) # amount of vectors in refsystem needed
-        rr_transform = unitary_group.rvs(refdim)
+        refamount = schmidt_rank # amount of vectors in refsystem needed
+        rr_transform = unitary_group.rvs(dim_r)
         refbasis = [rr_transform @ compb[i] for i in range(0, refamount)]
 
-        pt = generate_point_from_vecs(schmidt_rank, bases[i], refbasis, 2**x_qubits, refdim)# refdim)
+        pt = generate_point_from_vecs(schmidt_rank, bases[i], refbasis, 2**x_qubits, dim_r)# refdim)
         finalpoints.append(pt)
 
     return finalpoints

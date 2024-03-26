@@ -239,9 +239,9 @@ def plot_3d_loss_landscape(landscape, ansatz, title):
     ax.set_xticks(np.arange(len(x_labels)), labels=x_labels)
     ax.set_yticks(np.arange(len(x_labels)), labels=y_labels)
     ax.set_ylabel("$\\phi$", rotation=180, va="center")
-    ax.set_xlabel("$\\lambda$")
+    ax.set_xlabel("$\\lambda$", rotation=180, va="center")
     ax.set_zlabel("Loss")
-    tick_density = int(length / 10)
+    tick_density = int(length / 5)
     # only display every x'th tick
     ax.set_xticks(ax.get_xticks()[::tick_density])
     ax.set_yticks(ax.get_yticks()[::tick_density])

@@ -246,7 +246,7 @@ def run_full_experiment():
     num_qubits = 2
     num_unitaries = 5
     num_tries = 5
-    grid_size = 3
+    grid_size = 10
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
     current_time = datetime.now()
@@ -339,4 +339,7 @@ if __name__ == "__main__":
     # one thread per core
     torch.set_num_threads(1)
     torch.multiprocessing.set_sharing_strategy("file_system")
+    #sample_non_lihx_points(
+                #     3, 4, 2, 2
+                # )
     run_full_experiment()
