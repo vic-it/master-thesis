@@ -9,6 +9,7 @@ from victor_thesis_metrics import *
 from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import cpu_count
 import os
+import sys
 
 
 def process_and_store_metrics(landscapes, conf_id, experiment_id):
@@ -231,6 +232,7 @@ def run_single_experiment_batch(
     process_and_store_metrics(landscapes, conf_id, experiment_id)
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print(f"[{now}] Finished run: {conf_id}")
+    sys.stdout.flush()
 
 
 def run_full_experiment():
