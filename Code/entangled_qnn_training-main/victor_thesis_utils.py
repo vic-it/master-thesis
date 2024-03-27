@@ -4,7 +4,11 @@ from data import *
 import numpy as np
 from utils import *
 
-
+def calc_average_of_std(list_of_std):
+    sq_sum = 0
+    for std in list_of_std:
+        sq_sum += std**2
+    return np.sqrt(sq_sum/len(list_of_std))
 def get_meta_for_mode(mode, data, min_val, max_val, titles, o, gate_name, ansatz):
     """function which calculates parameters for a 2d pyplot representing the data in whatever mode you want
 
