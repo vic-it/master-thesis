@@ -158,5 +158,5 @@ def get_results(idx):
     return results, configs
 
 
-run_id = "10_6_3_26_14_44_31"
-get_results(run_id)
+#run_id = "10_6_3_26_14_44_31"
+#get_results(run_id)
