@@ -2,11 +2,14 @@
 from datetime import datetime
 
 from torch import tensor
-from qnns.cuda_qnn import CudaPennylane
+from victor_thesis_results_processing import get_results
 from victor_thesis_utils import *
 from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
+
+run_id = "10_6_3_26_14_44_31" 
+results, configs = get_results(run_id)
 
 def figure_basic_loss_landscape():
     qnn = get_qnn("CudaU2", list(range(1)), 1, device="cpu")
@@ -18,7 +21,9 @@ def figure_basic_loss_landscape():
     plot_3d_loss_landscape(
         loss_ent, "U2", f"Hadamard (on 2 data points)"
     )
-figure_basic_loss_landscape()
+
+
+#figure_basic_loss_landscape()
 
 
 

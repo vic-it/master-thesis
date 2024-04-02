@@ -248,7 +248,7 @@ def run_full_experiment():
     num_qubits = 2
     num_unitaries = 5
     num_tries = 5
-    grid_size = 13
+    grid_size = 17
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
     current_time = datetime.now()

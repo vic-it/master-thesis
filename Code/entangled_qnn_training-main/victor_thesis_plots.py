@@ -1,3 +1,4 @@
+from matplotlib.ticker import MaxNLocator
 import numpy as np
 from data import *
 import matplotlib.pyplot as plt
@@ -14,6 +15,29 @@ from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
 # from victor_thesis_utils import get_meta_for_mode
+
+
+def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_label, title, sample_labels):
+    fig, axs = plt.subplots(3,2, figsize=(10,12))
+    #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+    fig.suptitle(title)
+    for i in range(3):
+        for j in range(2):
+            index = 2*i + j
+            axs[i,j].xaxis.set_major_locator(MaxNLocator(integer=True))
+            if index < 5:
+                axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5)
+                axs[i,j].set(ylabel=y_labels[index], xlabel=x_label)
+                axs[i,j].set_title("Mean and Standard Deviation")
+            else:   
+                axs[i,j].bar(sample_labels, neg_list, label="negative", color="cornflowerblue")
+                axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive", color="springgreen") 
+                axs[i,j].set(ylabel="% pos/neg", xlabel=x_label)
+                axs[i,j].set_title("% positive and negative scalar curvature")
+                axs[i,j].legend()
+    plt.tight_layout()
+    plt.show()
+
 
 
 # plot a row of datasets
@@ -86,6 +110,7 @@ def plot_metrics_convergence(
     """a helper function to visualize whether or not certain metrics converge with fewer ticks
     """
     fig, axes = plt.subplots(1, len(entangled_metric_data))
+    fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     fig.suptitle(f"{metric_name} for {len(entangled_metric_data)} runs")
     x = range(min_ticks, len(entangled_metric_data[0]) + min_ticks, 1)
     for run_id in range(len(entangled_metric_data)):
