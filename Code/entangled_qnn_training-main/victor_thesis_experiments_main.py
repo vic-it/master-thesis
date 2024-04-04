@@ -12,7 +12,7 @@ import os
 import sys
 
 
-def process_and_store_metrics(landscapes, conf_id, experiment_id):
+def process_and_store_metrics(metrics, length, conf_id, experiment_id):
     """calculates, processes and stores the metrics of given landscapes into a txt file for later evaluation
        supposed to get five landscapes, corresponding to 5 different runs for the same configuration
        and unitaries but with different qubit data points
@@ -30,22 +30,16 @@ def process_and_store_metrics(landscapes, conf_id, experiment_id):
     )
     file.write(f"conf_id={conf_id}\n---\n")
     file.close()
-    TV_arr = []
-    FD_arr = []
-    IGSD_arr = []
-    SC_arr = []
-    # calculate metrics
-    for landscape in landscapes:
-        TV_arr.append(calc_total_variation(landscape))
-        FD_arr.append(calc_fourier_density(landscape))
-        IGSD_arr.append(calc_IGSD(landscape))
-        SC_arr.append(calc_scalar_curvature(landscape))
+    TV_arr = metrics[0]
+    FD_arr = metrics[1]
+    IGSD_arr = metrics[2]
+    SC_arr = metrics[3]
 
     # calculate and store individual sub-metric (avg, std,..)
     file = open(
         f"experimental_results/results/runs_{experiment_id}/conf_{conf_id}.txt", "a"
     )
-    for idx in range(len(landscapes)):
+    for idx in range(length):
         file.write(f"run_{idx}\n")
         file.write(f"TV={TV_arr[idx]}\n")
         file.write(f"FD={FD_arr[idx]}\n")
@@ -224,12 +218,23 @@ def run_single_experiment_batch(
         experiment_id (string): a string identifier for the file system to identify which experiment results and configs belong together
             contains mostly time and dimension/grid size info
     """
-    landscapes = []
+    TV_arr = []
+    FD_arr = []
+    IGSD_arr = []
+    SC_arr = []
     for data_set in data_batch:
-        landscapes.append(
-            generate_loss_landscape(grid_size, dimensions, data_set, U, qnn)
-        )
-    process_and_store_metrics(landscapes, conf_id, experiment_id)
+        landscape = generate_loss_landscape(grid_size, dimensions, data_set, U, qnn)
+        TV_arr.append(calc_total_variation(landscape))
+        FD_arr.append(calc_fourier_density(landscape))
+        IGSD_arr.append(calc_IGSD(landscape))
+        SC_arr.append(calc_scalar_curvature(landscape))
+        
+    metrics = []
+    metrics.append(TV_arr)
+    metrics.append(FD_arr)
+    metrics.append(IGSD_arr)
+    metrics.append(SC_arr)
+    process_and_store_metrics(metrics, len(data_batch), conf_id, experiment_id)
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print(f"[{now}] Finished run: {conf_id}")
     sys.stdout.flush()
