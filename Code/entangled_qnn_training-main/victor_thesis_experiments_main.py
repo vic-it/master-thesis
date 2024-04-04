@@ -11,6 +11,16 @@ from multiprocessing import cpu_count
 import os
 import sys
 
+def process_sc_metrics(SC):
+    sc = np.array(SC).reshape(-1)
+    sc_avg = np.mean(sc)
+    sc_std = np.std(sc)
+    sc_pos = (1.0 * np.sum(sc >= 0)) / (1.0 * len(sc))
+    sc_neg = (1.0 * np.sum(sc < 0)) / (1.0 * len(sc))
+    sc_abs = np.abs(sc)
+    sc_avg_abs = np.mean(sc_abs)
+    sc_std_abs = np.std(sc_abs)
+    return [sc_avg,sc_std,sc_pos,sc_neg,sc_abs,sc_avg_abs,sc_std_abs]
 
 def process_and_store_metrics(metrics, length, conf_id, experiment_id):
     """calculates, processes and stores the metrics of given landscapes into a txt file for later evaluation
@@ -33,7 +43,7 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
     TV_arr = metrics[0]
     FD_arr = metrics[1]
     IGSD_arr = metrics[2]
-    SC_arr = metrics[3]
+    SC_metrics = metrics[3]
 
     # calculate and store individual sub-metric (avg, std,..)
     file = open(
@@ -51,41 +61,21 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
         file.write(f"IGSD={igsd_string}\n")
         # calculate SC sub-metrics
         # flatten SC
-        sc = np.array(SC_arr[idx]).reshape(-1)
-        sc_avg = np.mean(sc)
-        sc_std = np.std(sc)
-        sc_pos = (1.0 * np.sum(sc >= 0)) / (1.0 * len(sc))
-        sc_neg = (1.0 * np.sum(sc < 0)) / (1.0 * len(sc))
-        sc_abs = np.abs(sc)
-        sc_avg_abs = np.mean(sc_abs)
-        sc_std_abs = np.std(sc_abs)
+        sc_metric = SC_metrics[idx]
+        sc_avg = sc_metric[0]
+        sc_std = sc_metric[1]
+        sc_pos = sc_metric[2]
+        sc_neg = sc_metric[3]
+        sc_abs = sc_metric[4]
+        sc_avg_abs = sc_metric[5]
+        sc_std_abs = sc_metric[6]
         file.write(f"SC_pos={sc_pos}\n")
         file.write(f"SC_neg={sc_neg}\n")
         file.write(f"SC_avg={sc_avg}\n")
         file.write(f"SC_std={sc_std}\n")
         file.write(f"SC_avg_abs={sc_avg_abs}\n")
         file.write(f"SC_std_abs={sc_std_abs}\n---\n")
-    # now for all runs combined
-    tv = np.array(TV_arr)
-    fd = np.array(FD_arr)
-    igsd = np.array(IGSD_arr).reshape(-1)
-    sc = np.array(SC_arr).reshape(-1)
-    sc_pos = (1.0 * np.sum(sc >= 0)) / (1.0 * len(sc))
-    sc_neg = (1.0 * np.sum(sc < 0)) / (1.0 * len(sc))
-    sc_abs = np.abs(sc)
     file.write("combined\n")
-    file.write(f"TV_avg={np.mean(tv)}\n")
-    file.write(f"TV_std={np.std(tv)}\n")
-    file.write(f"FD_avg={np.mean(fd)}\n")
-    file.write(f"FD_std={np.std(fd)}\n")
-    file.write(f"IGSD_avg={np.mean(igsd)}\n")
-    file.write(f"IGSD_std={np.std(igsd)}\n")
-    file.write(f"SC_pos_avg={sc_pos}\n")
-    file.write(f"SC_neg_avg={sc_neg}\n")
-    file.write(f"SC_avg={np.mean(sc)}\n")
-    file.write(f"SC_std={np.std(sc)}\n")
-    file.write(f"SC_avg_abs={np.mean(sc_abs)}\n")
-    file.write(f"SC_std_abs={np.std(sc_abs)}")
     file.close()
 
 
@@ -221,19 +211,19 @@ def run_single_experiment_batch(
     TV_arr = []
     FD_arr = []
     IGSD_arr = []
-    SC_arr = []
+    SC_metrics = []
     for data_set in data_batch:
         landscape = generate_loss_landscape(grid_size, dimensions, data_set, U, qnn)
         TV_arr.append(calc_total_variation(landscape))
         FD_arr.append(calc_fourier_density(landscape))
         IGSD_arr.append(calc_IGSD(landscape))
-        SC_arr.append(calc_scalar_curvature(landscape))
+        SC_metrics.append(process_sc_metrics(calc_scalar_curvature(landscape)))
         
     metrics = []
     metrics.append(TV_arr)
     metrics.append(FD_arr)
     metrics.append(IGSD_arr)
-    metrics.append(SC_arr)
+    metrics.append(SC_metrics)
     process_and_store_metrics(metrics, len(data_batch), conf_id, experiment_id)
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print(f"[{now}] Finished run: {conf_id}")
