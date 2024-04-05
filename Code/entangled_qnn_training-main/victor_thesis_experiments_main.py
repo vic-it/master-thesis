@@ -1,3 +1,4 @@
+import gc
 import time
 from datetime import datetime
 from qnns.cuda_qnn import CudaPennylane
@@ -217,7 +218,11 @@ def run_single_experiment_batch(
         TV_arr.append(calc_total_variation(landscape))
         FD_arr.append(calc_fourier_density(landscape))
         IGSD_arr.append(calc_IGSD(landscape))
-        SC_metrics.append(process_sc_metrics(calc_scalar_curvature(landscape)))
+        SC = calc_scalar_curvature(landscape)
+        SC_metrics.append(process_sc_metrics(SC))
+        del SC
+        del landscape
+        gc.collect()
         
     metrics = []
     metrics.append(TV_arr)
@@ -243,7 +248,7 @@ def run_full_experiment():
     num_qubits = 2
     num_unitaries = 5
     num_tries = 5
-    grid_size = 17
+    grid_size = 16
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
     current_time = datetime.now()
