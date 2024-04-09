@@ -339,7 +339,4 @@ if __name__ == "__main__":
     # one thread per core
     torch.set_num_threads(1)
     torch.multiprocessing.set_sharing_strategy("file_system")
-    #sample_non_lihx_points(
-                #     3, 4, 2, 2
-                # )
     run_full_experiment()
