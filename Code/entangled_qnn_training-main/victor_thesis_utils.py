@@ -90,3 +90,58 @@ def get_k_norm(arr, k):
     for num in np.nditer(arr):
         inner_sum += np.absolute(num) ** k
     return inner_sum ** (1.0 / k)
+
+
+def get_first_order_gradient_of_point(i, target_point, landscape):
+    grid_size = len(landscape[0])
+    if target_point[i]==0:
+        #forward diff
+        leftid = list(target_point)
+        leftid[i] = leftid[i]+1
+        rightid = list(target_point)    
+        leftidx = tuple(leftid)
+        rightidx = tuple(rightid)
+        return (landscape[leftidx]-landscape[rightidx])
+    if target_point[i] >= grid_size-1:
+        #backward diff        
+        leftid = list(target_point)
+        rightid = list(target_point)
+        rightid[i] = rightid[i] -1
+        
+        leftidx = tuple(leftid)
+        rightidx = tuple(rightid)
+        return (landscape[leftidx]-landscape[rightidx])
+    
+    leftid = list(target_point)
+    rightid = list(target_point)
+    leftid[i] = leftid[i]+1
+    rightid[i] = rightid[i] -1
+    leftidx = tuple(leftid)
+    rightidx = tuple(rightid)
+    return (landscape[leftidx]-landscape[rightidx])/2
+
+def get_second_order_gradient_of_point(i,j, target_point, landscape):
+    grid_size = len(landscape[0])
+    if target_point[j]==0:
+        #forward diff
+        leftid = list(target_point)
+        leftid[j] = leftid[j]+1
+        rightid = list(target_point)    
+        leftidx = tuple(leftid)
+        rightidx = tuple(rightid)
+        return (get_first_order_gradient_of_point(i, leftidx, landscape)-get_first_order_gradient_of_point(i, rightidx, landscape))
+    if target_point[j] >= grid_size-1:
+        #backward diff        
+        leftid = list(target_point)
+        rightid = list(target_point)
+        rightid[j] = rightid[j] -1        
+        leftidx = tuple(leftid)
+        rightidx = tuple(rightid)
+        return (get_first_order_gradient_of_point(i, leftidx, landscape)-get_first_order_gradient_of_point(i, rightidx, landscape))    
+    leftid = list(target_point)
+    rightid = list(target_point)
+    leftid[j] = leftid[j]+1
+    rightid[j] = rightid[j] -1
+    leftidx = tuple(leftid)
+    rightidx = tuple(rightid)
+    return (get_first_order_gradient_of_point(i, leftidx, landscape)-get_first_order_gradient_of_point(i, rightidx, landscape))/2

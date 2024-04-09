@@ -82,7 +82,7 @@ def generate_loss_landscape(grid_size, dimensions, inputs, U, qnn):
         for dimension in idx:
             param_list.append(param_vals[dimension])
         # calculate cost function
-        param_list = np.array(param_list)
+        param_list = np.asarray(param_list)
         qnn.params = torch.tensor(param_list, dtype=torch.float64, requires_grad=True).reshape(qnn.params.shape)
         cost = cost_func(inputs, y_true, qnn, device="cpu") 
         landscape[idx]=cost.item()
