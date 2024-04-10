@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+from matplotlib.ticker import StrMethodFormatter
 import numpy as np
 import torch
 
@@ -67,12 +68,19 @@ def expressibility(num_tries, num_bins, num_qubits):
     x_vals = range(num_bins)
     plt.bar(x_vals, haar_dist, label="Haar", alpha=.4)
     plt.bar(x_vals, pl_dist, label="PennyLane Ansatz", alpha=.4)
+    num_ticks = 11
+    tick_locations = np.linspace(0, num_bins-1, num_ticks)
+    tick_labels = np.round(np.linspace(0, 1, num_ticks),1)
+    plt.ylabel("Probability")
+    plt.xlabel("Fidelity")
+    plt.xticks(tick_locations, tick_labels)
+    #plt.xlim(0,1)
     plt.tight_layout()
     plt.legend()
     plt.show()
 
 
-expressibility(num_tries=100000, num_bins=50, num_qubits=2)
+expressibility(num_tries=10000, num_bins=100, num_qubits=2)
 # expressibility(num_tries=20000, num_bins=20, num_qubits=2)
 # num_qubits = 2
 # qnn = CudaPennylane(num_wires=num_qubits, num_layers=1, device="cpu")

@@ -24,31 +24,24 @@ def calc_scalar_curvature(landscape):
     Returns:
         array: n dimensional scalar curvature array
     """
-    landscape = np.array(landscape)
+    landscape = np.asarray(landscape)
     scalar_curvature = np.ndarray(landscape.shape)
     dims = len(landscape.shape)
-    first_order_gradients = np.array(np.gradient(np.array(landscape)))
-    second_order_gradients = []
-    for grad in first_order_gradients:
-        # should go like e.g. xx, xy, xz, yx, yy, yz, zx, zy, zz for 3d
-        temp = np.array(np.gradient(np.array(grad)))
-        for arr in temp:
-            second_order_gradients.append(arr)
-    second_order_gradients = np.array(second_order_gradients)
     # iterate over all landscape entries where idx is the exact position in the array (i.e: idx = (11, 2, 9, 10) -> arr[11][2][9][10] for a 4param qnn)
-    for idx, _ in np.ndenumerate(landscape):
+    for idx, _ in np.ndenumerate(scalar_curvature):
         # generate dimsXdims hessian and dims sized vector of gradients for a specific point of the loss landscape
         point_hessian = []
         gradient_vector = []
         for i in range(dims):
-            gradient_vector.append(first_order_gradients[i][idx])
+            #get gradient vector
+            gradient_vector.append(get_first_order_gradient_of_point(i, idx, landscape))
             row = []
             for j in range(dims):
                 # append e.g. [[0],[1]],[[2],[3]] for 2d
-                row.append(second_order_gradients[i * dims + j][idx])
+                row.append(get_second_order_gradient_of_point(i,j,idx,landscape))
             point_hessian.append(row)
-        point_hessian = np.array(point_hessian)
-        gradient_vector = np.array(gradient_vector)
+        point_hessian = np.asarray(point_hessian)
+        gradient_vector = np.asarray(gradient_vector)
         # calculate scalar curvature from here
         beta = 1 / (1 + np.linalg.norm(gradient_vector) ** 2)
         left_term = beta * (
@@ -57,7 +50,7 @@ def calc_scalar_curvature(landscape):
         )
         right_inner = np.matmul(point_hessian, point_hessian) - np.trace(
             point_hessian
-        ) * np.array(point_hessian)
+        ) * point_hessian
         # order of matmul with gradient does not matter
         right_term = (
             2
