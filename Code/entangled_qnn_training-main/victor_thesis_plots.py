@@ -19,21 +19,21 @@ from victor_thesis_metrics import *
 
 def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_label, title, sample_labels):
     fig, axs = plt.subplots(3,2, figsize=(10,12))
+    title_list = ["Total Variation", "Inverse Gradient Standard Deviation","Fourier Density", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature"]
     #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     fig.suptitle(title)
     for i in range(3):
         for j in range(2):
             index = 2*i + j
             axs[i,j].xaxis.set_major_locator(MaxNLocator(integer=True))
+            axs[i,j].set_title(title_list[index])
             if index < 5:
                 axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5)
                 axs[i,j].set(ylabel=y_labels[index], xlabel=x_label)
-                axs[i,j].set_title("Mean and Standard Deviation")
             else:   
                 axs[i,j].bar(sample_labels, neg_list, label="negative", color="cornflowerblue")
                 axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive", color="springgreen") 
                 axs[i,j].set(ylabel="% pos/neg", xlabel=x_label)
-                axs[i,j].set_title("% positive and negative scalar curvature")
                 axs[i,j].legend()
     plt.tight_layout()
     plt.show()
