@@ -26,8 +26,7 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_lab
         for j in range(2):
             index = 2*i + j
             axs[i,j].xaxis.set_major_locator(MaxNLocator(integer=True))
-            #axs[i,j].set_title(title_list[index])
-            axs[i,j].set_title(title)
+            axs[i,j].set_title(title_list[index])
             if index < 5:
                 axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5)
                 axs[i,j].set(ylabel=title_list[index], xlabel=x_label)

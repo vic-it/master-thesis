@@ -16,6 +16,7 @@ class Result:
         self.SC_std_list=[]
         self.SC_avg_abs_list=[]
         self.SC_std_abs_list=[]
+        
 class Combined_Result:
     def __init__(self):
         self.config_indices = []
@@ -149,7 +150,44 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
         pos_list.append(res.SC_pos_avg)
         neg_list.append(res.SC_neg_avg)
     plot_results_metric(combined_mean_list, combined_std_list, pos_list, neg_list, attr_list, x_label, title, sample_labels)
-    
+
+def calculate_deviations(combined_results_list, labels):    
+    attr_list = ["TV", "IGSD","FD", "SC", "SC_abs"]
+    for attr_name in attr_list:
+        for i in range(1, len(labels)):
+            base_res_mean =getattr(combined_results_list[0],f"{attr_name}_avg")
+            base_res_std =getattr(combined_results_list[0],f"{attr_name}_std")
+            res = combined_results_list[i]
+            combined_results_mean= getattr(res,f"{attr_name}_avg")
+            combined_results_std= getattr(res,f"{attr_name}_std")
+            mean_diff = combined_results_mean/base_res_mean -1
+            std_diff = combined_results_std/base_res_std -1
+            # print(f"{labels[i]}, {attr_name} - mean diff: {round(100.*mean_diff,1)}%")
+            # print(f"{labels[i]}, {attr_name} - std diff: {round(100.*std_diff,1)}%")
+            print(f"{labels[i]}, {attr_name}: \cellcolor[HTML]{{{map_to_color(np.abs(mean_diff)+np.abs(std_diff)/4)}}}{round(100.*mean_diff,1)}\% ({round(100.*std_diff,1)}\%)")
+
+def map_to_color(number):
+    # Ensure the number is within the range [-1, 1]
+    number = np.sqrt(max(-1, min(number, 1)))/2
+
+    if number < 0:
+        # Interpolate between blue and white
+        blue = 255
+        green = 255 + int(number * 255)  # Decrease green component
+        red = 255 + int(number * 255)  # Decrease red component
+    else:
+        # Interpolate between white and red
+        red = 255
+        green = 255 - int(number * 255)  # Decrease green component
+        blue = 255 - int(number * 255)  # Decrease blue component
+
+    # Clip values to [0, 255]
+    red = max(0, min(red, 255))
+    green = max(0, min(green, 255))
+    blue = max(0, min(blue, 255))
+
+    return "{:02x}{:02x}{:02x}".format(red, green, blue)
+
 def get_results(idx):
     # condensed configs from 1600total runs -> 320 configXunitary -> into 64 configurations, consiting of lists of results
     configs = generate_config()
