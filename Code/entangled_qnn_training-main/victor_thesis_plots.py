@@ -26,18 +26,18 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_lab
         for j in range(2):
             index = 2*i + j
             axs[i,j].xaxis.set_major_locator(MaxNLocator(integer=True))
-            axs[i,j].set_title(title_list[index])
+            #axs[i,j].set_title(title_list[index])
+            axs[i,j].set_title(title)
             if index < 5:
                 axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5)
-                axs[i,j].set(ylabel=y_labels[index], xlabel=x_label)
+                axs[i,j].set(ylabel=title_list[index], xlabel=x_label)
             else:   
                 axs[i,j].bar(sample_labels, neg_list, label="negative", color="cornflowerblue")
                 axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive", color="springgreen") 
-                axs[i,j].set(ylabel="% pos/neg", xlabel=x_label)
+                axs[i,j].set(ylabel="% pos/neg Scalar Curvature", xlabel=x_label)
                 axs[i,j].legend()
     plt.tight_layout()
     plt.show()
-
 
 
 # plot a row of datasets
