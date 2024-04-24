@@ -131,7 +131,12 @@ def combine_results(result_list):
     combined_results.SC_std= calc_average_of_std(SC_std_list)
     combined_results.SC_abs_std=calc_average_of_std(SC_std_abs_list)
     return combined_results
-
+def print_metrics(combined_results_list, title):
+    print(title)
+    for result in combined_results_list:
+        for attr, value in result.__dict__.items():
+            print(f"{attr}: {value}")
+    print("---------")
 def visualize_metrics(combined_results_list, x_label, title, sample_labels = range(1, 5)):    
     attr_list = ["TV", "IGSD","FD", "SC", "SC_abs"]
     combined_mean_list = []
