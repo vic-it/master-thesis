@@ -18,6 +18,17 @@ from victor_thesis_metrics import *
 
 
 def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_label, title, sample_labels):
+    """plots the metrics for multiple results
+
+    Args:
+        mean_list (list): list of mean values of all metrics
+        std_list (list): list of stdv values of all metrics
+        pos_list (list): list of positive percentage of scalar curvatur values
+        neg_list (list): list of negative percentage of scalar curvatur values
+        y_labels (list): labels for the y axis
+        x_label (list): labels for the x axis
+        title (list): title of plot
+    """
     fig, axs = plt.subplots(3,2, figsize=(10,12))
     title_list = ["Total Variation", "Inverse Gradient Standard Deviation","Fourier Density", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature"]
     #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))

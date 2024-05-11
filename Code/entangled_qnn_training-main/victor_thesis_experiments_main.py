@@ -12,6 +12,16 @@ from multiprocessing import cpu_count
 import os
 
 def process_sc_metrics(SC):
+    """calculates the mean, standard deviation, absolute mean and absolute standard deviations, 
+       as well as the positive and negative percentage of the scalar curvature values in the input array
+
+    Args:
+        SC (array): the scalar curvature values for each point of a sampled landscape, 
+        each entry of the n-dimensional SC array corresponds to the value of the landscape at the same position in the array
+
+    Returns:
+        list: a list of all metrics that depend on the scalar curvature array
+    """
     sc = np.array(SC).reshape(-1)
     sc_avg = np.mean(sc)
     sc_std = np.std(sc)

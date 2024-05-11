@@ -4,11 +4,20 @@ from data import *
 import numpy as np
 from utils import *
 
-def calc_average_of_std(list_of_std):
+def calc_combined_std(list_of_std):
+    """calculates combined stdv of multiple stdv values
+
+    Args:
+        list_of_std (list): a list of standard deviations
+
+    Returns:
+        float: combined standard deviation
+    """
     sq_sum = 0
     for std in list_of_std:
         sq_sum += std**2
     return np.sqrt(sq_sum/len(list_of_std))
+
 def get_meta_for_mode(mode, data, min_val, max_val, titles, o, gate_name, ansatz):
     """function which calculates parameters for a 2d pyplot representing the data in whatever mode you want
 
@@ -93,6 +102,16 @@ def get_k_norm(arr, k):
 
 
 def get_first_order_gradient_of_point(derivative_direction, target_point, landscape):
+    """given an n dimensional array, this calculates the first oder gradient of a single point in a single direction
+
+    Args:
+        derivative_direction (int): id of the direction of the gradient
+        target_point (list): the point you want to calculate the gradient of
+        landscape (array): landscape in which the point can be found
+
+    Returns:
+        float: the first order gradient of the target point in the landscape in the target direction
+    """
     grid_size = len(landscape[0])
     if target_point[derivative_direction]==0:
         #forward diff
@@ -121,6 +140,17 @@ def get_first_order_gradient_of_point(derivative_direction, target_point, landsc
     return (landscape[leftidx]-landscape[rightidx])/2
 
 def get_second_order_gradient_of_point(first_order_direction,second_order_direction, target_point, landscape):
+    """calculates the second order derivative in the specified directions
+
+    Args:
+        first_order_direction (int): the id of the direction of the first order derivative
+        second_order_direction (int): the id of the direction of the second order derivative
+        target_point (list): the point in the landscape to derive
+        landscape (array): loss landscape
+
+    Returns:
+        float: the second order derivative at the point of the landscape specified
+    """
     grid_size = len(landscape[0])
     if target_point[second_order_direction]==0:
         #forward diff

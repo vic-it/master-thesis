@@ -3,8 +3,10 @@ from matplotlib.ticker import MaxNLocator
 import numpy as np
 
 from victor_thesis_plots import plot_results_metric
-from victor_thesis_utils import calc_average_of_std
-class Result:     
+from victor_thesis_utils import calc_combined_std
+class Result:
+    """this class contains a blue print for how single experiment results are stored within the program
+    """
     def __init__(self, idx):
         self.idx = idx
         self.TV_list = []
@@ -18,6 +20,8 @@ class Result:
         self.SC_std_abs_list=[]
         
 class Combined_Result:
+    """this class contains a blue print for how you store results after you combine them for different runs or configurations
+    """
     def __init__(self):
         self.config_indices = []
         self.number_configs = 0
@@ -36,6 +40,15 @@ class Combined_Result:
         self.SC_abs_std= 0
 
 def read_results(idx, max_run_id):
+    """reads in the results from the save file and puts the results into results objects
+
+    Args:
+        idx (string): index of the results file
+        max_run_id (int): the total amount of runs within the file
+
+    Returns:
+        list: a list of all results as results objects
+    """
     results = []
     path = f"experimental_results/results/runs_{idx}/"
     for target_idx in range(max_run_id):
@@ -65,6 +78,11 @@ def read_results(idx, max_run_id):
     return results
 
 def generate_config():
+    """generates the configurations as an array that were used for the experiments
+
+    Returns:
+        array: the configurations as an array
+    """
     config_by_id = []
     for type_of_data in range(1, 5, 1):
             # iterate over training data size 1 to 4
@@ -78,8 +96,22 @@ def generate_config():
                     config.append(deg_of_entanglement)
                     config_by_id.append(config)
     return config_by_id
-                        
+          
 def get_results_where(results, configs, type_of_data = 0, num_data_points = 0, schmidt_rank = 0):
+    """very helpful helper function that extracts exactly the results you want from all possible results, 
+       you can combine multiple attributes to filter by, 
+       if an attribute is left empty it will not filter by that attribute
+
+    Args:
+        results (list): list of all results
+        configs (array): array containing the configurations for each result in the same order
+        type_of_data (int, optional): filter for which type of data you want extracted, 1 for uniformly random, 2 for orthogonal, 3 for linearly dependent and 4 for average schmidt rank. Defaults to 0.
+        num_data_points (int, optional): filter for runs with specific number of data points used (1 to 4). Defaults to 0.
+        schmidt_rank (int, optional): filter for runs with specific schmidt ranks used (1 to 4). Defaults to 0.
+
+    Returns:
+        list: returns a list of results filtered by the arguments
+    """
     output = []
     for idx, config in enumerate(configs):
         if type_of_data == 0 or config[0] == type_of_data:
@@ -89,6 +121,14 @@ def get_results_where(results, configs, type_of_data = 0, num_data_points = 0, s
     return output
 
 def combine_results(result_list):
+    """takes a list of results and combines them into a combined results object
+
+    Args:
+        result_list (list): list containing experiment results
+
+    Returns:
+        combined results: a combined results object of the input results
+    """
     combined_results = Combined_Result()    
     TV_list = []
     FD_list=[]
@@ -128,16 +168,32 @@ def combine_results(result_list):
     combined_results.SC_avg=np.mean(SC_avg_list)
     combined_results.SC_abs_avg=np.mean(SC_avg_abs_list)
     # SC std stuff
-    combined_results.SC_std= calc_average_of_std(SC_std_list)
-    combined_results.SC_abs_std=calc_average_of_std(SC_std_abs_list)
+    combined_results.SC_std= calc_combined_std(SC_std_list)
+    combined_results.SC_abs_std=calc_combined_std(SC_std_abs_list)
     return combined_results
+
 def print_metrics(combined_results_list, title):
+    """prints the metrics to text to better compare the values
+
+    Args:
+        combined_results_list (list): list of combined results
+        title (string): what should be printed before the results
+    """
     print(title)
     for result in combined_results_list:
         for attr, value in result.__dict__.items():
             print(f"{attr}: {value}")
     print("---------")
+    
 def visualize_metrics(combined_results_list, x_label, title, sample_labels = range(1, 5)):    
+    """processes the combined results metrics such that they are easily plotted by the plot_results_metric function
+
+    Args:
+        combined_results_list (list): list of combined results objects
+        x_label (string): x axis label
+        title (string): title of plot
+        sample_labels (list, optional): list of labels if default labels 1-4 are not correct (e.g. for data types). Defaults to range(1, 5).
+    """
     attr_list = ["TV", "IGSD","FD", "SC", "SC_abs"]
     combined_mean_list = []
     combined_std_list =[]
@@ -157,6 +213,12 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
     plot_results_metric(combined_mean_list, combined_std_list, pos_list, neg_list, attr_list, x_label, title, sample_labels)
 
 def calculate_deviations(combined_results_list, labels):    
+    """calculates the deviation between the uniformly random data results and the other data type results and returns strings with color formatting for latex
+
+    Args:
+        combined_results_list (list): list of combined results
+        labels (list): list of labels used to match the string output to the latex table position
+    """
     attr_list = ["TV", "IGSD","FD", "SC", "SC_abs"]
     for attr_name in attr_list:
         for i in range(1, len(labels)):
@@ -169,11 +231,22 @@ def calculate_deviations(combined_results_list, labels):
             std_diff = combined_results_std/base_res_std -1
             # print(f"{labels[i]}, {attr_name} - mean diff: {round(100.*mean_diff,1)}%")
             # print(f"{labels[i]}, {attr_name} - std diff: {round(100.*std_diff,1)}%")
-            print(f"{labels[i]}, {attr_name}: \cellcolor[HTML]{{{map_to_color(np.abs(mean_diff)+np.abs(std_diff)/4)}}}{round(100.*mean_diff,1)}\% ({round(100.*std_diff,1)}\%)")
+            print(f"{labels[i]}, {attr_name}: \cellcolor[HTML]{{{map_to_color((mean_diff)/2)}}}{round(100.*mean_diff,1)}\% ({round(100.*std_diff,1)}\%)")
 
 def map_to_color(number):
+    """takes a number between -1 and 1 and maps it to colors from blue (-1) to white (0) to red (1), nonlinearly
+
+    Args:
+        number (float): number to map to a color
+
+    Returns:
+        string: hexadecimal color code (i.e. ff23a1)
+    """
+    mult = 1
+    if number < 0: 
+        mult = -1
     # Ensure the number is within the range [-1, 1]
-    number = np.sqrt(max(-1, min(number, 1)))/2
+    number = mult*np.sqrt(max(-1, min(np.abs(number), 1)))/2
 
     if number < 0:
         # Interpolate between blue and white
@@ -194,6 +267,14 @@ def map_to_color(number):
     return "{:02x}{:02x}{:02x}".format(red, green, blue)
 
 def get_results(idx):
+    """geneartes configs and results to be used for all other processing
+
+    Args:
+        idx (string): index of the experiment to analyze
+
+    Returns:
+        list, list: results and configs for the experiment run
+    """
     # condensed configs from 1600total runs -> 320 configXunitary -> into 64 configurations, consiting of lists of results
     configs = generate_config()
     #print(configs)

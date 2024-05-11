@@ -7,6 +7,14 @@ from qnns.cuda_qnn import CudaPennylane
 
 
 def get_zero_state(num_qubits):
+    """calculates the zero vector for a given number of qubits
+
+    Args:
+        num_qubits (int): the number of qubits the zero vector should have
+
+    Returns:
+        vector: a vector with a leading 1 and 2^num_qubits -1 zeroes behind it
+    """
     n = 2**num_qubits
     state = []
     state.append([1])
@@ -16,14 +24,41 @@ def get_zero_state(num_qubits):
 
 
 def get_bin_index(num_bins, fidelity):
+    """calcutates the index of the bin corresponding to the fidelity level
+
+    Args:
+        num_bins (int): how many bins are wanted
+        fidelity (float): the fidelity for which to calculate the corresponding bin
+
+    Returns:
+        int: bin index of fidelity
+    """
     return int(np.floor(fidelity * (num_bins)))
 
 
 def sample_params(num_params):
+    """generates num_params random numbers between 0 and 2pi
+
+    Args:
+        num_params (int): how many parameters you need
+
+    Returns:
+        array: an array filled with uniformly random numbers between 0 and 2pi
+    """
     return np.random.rand(num_params, 1) * np.pi * 2
 
 
 def calc_fidelity(U1, U2, num_qubits):
+    """calculates the fidelity between two unitaries on a zero vector qubit input
+
+    Args:
+        U1 (tensor): first unitary
+        U2 (tensor): second unitary
+        num_qubits (int): number of qubits
+
+    Returns:
+        float: fidelity between the unitaries
+    """
     X = get_zero_state(num_qubits)
     y_1 = torch.matmul(U1, X)
     y_2 = torch.matmul(U2, X).conj()
@@ -32,6 +67,16 @@ def calc_fidelity(U1, U2, num_qubits):
 
 
 def uniform_haar_distribution(num_qubits, num_bins):
+    """calculates the values of the uniform haar distribution for num_bins bins and num_qubits qubits, 
+       which corresponds to the fidelity distribution of haar random unitaries
+
+    Args:
+        num_qubits (int): number of qubits
+        num_bins (int): number of bins for the distribution
+
+    Returns:
+        float: expected fidelity for haar random unitaries
+    """
     distribution = []
     N = 2**num_qubits
     for i in range(num_bins):
@@ -42,10 +87,28 @@ def uniform_haar_distribution(num_qubits, num_bins):
 
 
 def KL_divergence(p, q):
+    """calculates the Kullback Leibler Divergence
+
+    Args:
+        p (array): first distribution
+        q (array): second distribution
+
+    Returns:
+        float: divergence between the two distribution according to KL-D
+    """
     return np.sum(np.where((p * q) != 0, p * np.log(p / q), 0))
 
 
 def expressibility(num_tries, num_bins, num_qubits):
+    """calculates the expressibility of an ansatz 
+       by comparing the distribution of the ansatzes' fidelity with that 
+       of haar random unitaries with the KL-Divergence
+
+    Args:
+        num_tries (int): how many sampled tries
+        num_bins (int): number of bins of distributions
+        num_qubits (int): number of qubits of unitaries
+    """
     haar_dist = uniform_haar_distribution(num_qubits, num_bins)
     pl_dist = [0] * num_bins
     qnn1 = CudaPennylane(num_wires=num_qubits, num_layers=1, device="cpu")
@@ -80,14 +143,5 @@ def expressibility(num_tries, num_bins, num_qubits):
     plt.show()
 
 
-expressibility(num_tries=10000, num_bins=100, num_qubits=2)
-# expressibility(num_tries=20000, num_bins=20, num_qubits=2)
-# num_qubits = 2
-# qnn = CudaPennylane(num_wires=num_qubits, num_layers=1, device="cpu")
-# qnn.params = torch.tensor(sample_params(6), dtype=torch.float64, requires_grad=True).reshape(qnn.params.shape)
-# V_1 = qnn.get_tensor_V()
-# V_2 = qnn.get_tensor_V()
-# fid = calc_fidelity(V_1, V_2, num_qubits)
-# print(fid)
-# dist= uniform_haar_distribution(4, 50)
-# norm_dist = np.divide(dist, np.sum(dist))
+expressibility(num_tries=100000, num_bins=50, num_qubits=2)
+
