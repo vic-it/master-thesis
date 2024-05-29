@@ -17,7 +17,7 @@ from victor_thesis_metrics import *
 # from victor_thesis_utils import get_meta_for_mode
 
 
-def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_label, title, sample_labels):
+def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_label, sample_labels):
     """plots the metrics for multiple results
 
     Args:
@@ -32,7 +32,7 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_lab
     fig, axs = plt.subplots(3,2, figsize=(10,12))
     title_list = ["Total Variation", "Inverse Gradient Standard Deviation","Fourier Density", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature"]
     #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
-    fig.suptitle(title)
+    #fig.suptitle(title)
     for i in range(3):
         for j in range(2):
             index = 2*i + j
@@ -274,17 +274,17 @@ def plot_3d_loss_landscape(landscape, ansatz, title):
     # set label ticks
     ax.set_xticks(np.arange(len(x_labels)), labels=x_labels)
     ax.set_yticks(np.arange(len(x_labels)), labels=y_labels)
-    ax.set_ylabel("$\\phi$", rotation=180, va="center")
+    ax.set_ylabel("$\\phi$", rotation=-45, va="center")
     ax.set_xlabel("$\\lambda$", rotation=180, va="center")
     ax.set_zlabel("Loss")
     tick_density = int(length / 5)
     # only display every x'th tick
     ax.set_xticks(ax.get_xticks()[::tick_density])
     ax.set_yticks(ax.get_yticks()[::tick_density])
-    plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+    plt.setp(ax.get_xticklabels(), rotation=0, ha="right", rotation_mode="anchor")
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.set_ylabel("Loss", rotation=-90, va="bottom")
-    ax.set_title(f"{ansatz}($\\phi,\\lambda)$ Approximating {title}")
+    #ax.set_title(f"{ansatz}($\\phi,\\lambda)$ Approximating {title}")
     plt.show()
 
 

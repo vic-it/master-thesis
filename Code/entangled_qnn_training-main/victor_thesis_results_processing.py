@@ -210,7 +210,7 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
     for res in combined_results_list:
         pos_list.append(res.SC_pos_avg)
         neg_list.append(res.SC_neg_avg)
-    plot_results_metric(combined_mean_list, combined_std_list, pos_list, neg_list, attr_list, x_label, title, sample_labels)
+    plot_results_metric(combined_mean_list, combined_std_list, pos_list, neg_list, attr_list, x_label, sample_labels)
 
 def calculate_deviations(combined_results_list, labels):    
     """calculates the deviation between the uniformly random data results and the other data type results and returns strings with color formatting for latex
