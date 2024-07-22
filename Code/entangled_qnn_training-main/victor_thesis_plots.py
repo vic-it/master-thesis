@@ -17,7 +17,7 @@ from victor_thesis_metrics import *
 # from victor_thesis_utils import get_meta_for_mode
 
 
-def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_label, sample_labels):
+def plot_results_metric(mean_list, std_list, pos_list, neg_list, med_list, med_of_meds_list, y_labels, x_label, sample_labels):
     """plots the metrics for multiple results
 
     Args:
@@ -30,7 +30,7 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_lab
         title (list): title of plot
     """
     fig, axs = plt.subplots(3,2, figsize=(10,12))
-    title_list = ["Total Variation", "Inverse Gradient Standard Deviation","Fourier Density", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature"]
+    title_list = ["Total Variation","Fourier Density", "Inverse Gradient Standard Deviation", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature"]
     #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     #fig.suptitle(title)
     for i in range(3):
@@ -40,13 +40,20 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, y_labels, x_lab
             axs[i,j].set_title(title_list[index])
             #axs[i,j].set_title(title)
             if index < 5:
-                axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5)
+                axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5, label="average and standard deviation")
+                axs[i,j].plot(sample_labels, mean_list[index], linestyle='None', marker='o')
                 axs[i,j].set(ylabel=title_list[index], xlabel=x_label)
             else:   
                 axs[i,j].bar(sample_labels, neg_list, label="negative", color="cornflowerblue")
                 axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive", color="springgreen") 
                 axs[i,j].set(ylabel="% pos/neg Scalar Curvature", xlabel=x_label)
-                axs[i,j].legend()
+            # add median indicators
+            if index >= 2 and index < 5:           
+                axs[i,j].plot(sample_labels, med_of_meds_list[index-2], linestyle='None', marker='o', color='red', label="median of medians")
+            if index < 3:                
+                axs[i,j].plot(sample_labels, med_list[index], linestyle='None', marker='o', color='orange', label="median")
+            
+            axs[i,j].legend()
     plt.tight_layout()
     plt.show()
 

@@ -48,7 +48,7 @@ class Combined_Result:
         self.IGSD_med = 0
         self.IGSD_med_of_meds = 0
         self.SC_med_of_meds = 0
-        self.SC_med_of_meds_abs = 0
+        self.SC_abs_med_of_meds = 0
 
 def read_results(idx, max_run_id):
     """reads in the results from the save file and puts the results into results objects
@@ -192,7 +192,7 @@ def combine_results(result_list):
     combined_results.SC_avg=np.mean(SC_avg_list)
     combined_results.SC_abs_avg=np.mean(SC_avg_abs_list)
     combined_results.SC_med_of_meds=np.median(SC_med_list)
-    combined_results.SC_med_of_meds_abs=np.mean(SC_med_abs_list)
+    combined_results.SC_abs_med_of_meds=np.mean(SC_med_abs_list)
     # SC std stuff
     combined_results.SC_std= calc_combined_std(SC_std_list)
     combined_results.SC_abs_std=calc_combined_std(SC_std_abs_list)
@@ -222,23 +222,36 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
         title (string): title of plot
         sample_labels (list, optional): list of labels if default labels 1-4 are not correct (e.g. for data types). Defaults to range(1, 5).
     """
-    attr_list = ["TV", "IGSD","FD", "SC", "SC_abs"]
+    attr_list = ["TV", "FD", "IGSD", "SC", "SC_abs"]
     combined_mean_list = []
     combined_std_list =[]
+    combined_med_list = []
+    combined_med_of_meds_list = []
     for attr_name in attr_list:
         combined_results_mean = []
         combined_results_std = []
+        combined_results_med = []
+        combined_results_med_of_meds = []
         for res in combined_results_list:
             combined_results_mean.append(getattr(res,f"{attr_name}_avg"))
             combined_results_std.append(getattr(res,f"{attr_name}_std"))
+            if not attr_name.startswith("SC"):                
+                combined_results_med.append(getattr(res,f"{attr_name}_med"))
+            if attr_name.startswith("SC") or attr_name.startswith("IGSD"):                
+                combined_results_med_of_meds.append(getattr(res,f"{attr_name}_med_of_meds"))
         combined_mean_list.append(combined_results_mean)
         combined_std_list.append(combined_results_std)
+        if len(combined_results_med) > 0:
+            combined_med_list.append(combined_results_med)
+        if len(combined_results_med_of_meds) > 0:
+            combined_med_of_meds_list.append(combined_results_med_of_meds)
     pos_list = []
     neg_list = []
     for res in combined_results_list:
         pos_list.append(res.SC_pos_avg)
         neg_list.append(res.SC_neg_avg)
-    plot_results_metric(combined_mean_list, combined_std_list, pos_list, neg_list, attr_list, x_label, sample_labels)
+    print(combined_med_of_meds_list)
+    plot_results_metric(combined_mean_list, combined_std_list, pos_list, neg_list, combined_med_list, combined_med_of_meds_list, attr_list, x_label, sample_labels)
 
 def calculate_deviations(combined_results_list, labels):    
     """calculates the deviation between the uniformly random data results and the other data type results and returns strings with color formatting for latex
