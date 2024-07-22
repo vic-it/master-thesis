@@ -48,7 +48,7 @@ class Combined_Result:
         self.IGSD_med = 0
         self.IGSD_med_of_meds = 0
         self.SC_med_of_meds = 0
-        self.SC_abs_med_of_meds = 0
+        self.SC_med_of_meds_abs = 0
 
 def read_results(idx, max_run_id):
     """reads in the results from the save file and puts the results into results objects
@@ -73,7 +73,8 @@ def read_results(idx, max_run_id):
                 if len(split_line)>1:
                     split_line[1].replace("\n","")
                     if split_line[0]=="IGSD":
-                        igsds = split_line[1].replace("[","").replace("]","").split(",")
+                        igsds_string = split_line[1].replace("[","").replace("]","").replace("\n","").split(",")
+                        igsds = [float(numeric_string) for numeric_string in igsds_string]
                         current_result.IGSD_med_list.append(np.median(igsds))
                         for igsd in igsds:
                             current_result.IGSD_list.append(float(igsd))
@@ -154,7 +155,7 @@ def combine_results(result_list):
     #medians
     IGSD_med_list = []
     SC_med_list = []
-    SC_abs_med_list = []
+    SC_med_abs_list = []
     #concatenate all lists
     for result in result_list: 
         combined_results.config_indices.append(result.idx) 
@@ -171,7 +172,7 @@ def combine_results(result_list):
         SC_std_abs_list+=result.SC_std_abs_list
         IGSD_med_list += result.IGSD_med_list
         SC_med_list += result.SC_med_list
-        SC_abs_med_list += result.SC_abs_med_list
+        SC_med_abs_list += result.SC_med_abs_list
     # TV metrics
     combined_results.TV_avg=np.mean(TV_list)
     combined_results.TV_std=np.std(TV_list)
@@ -191,7 +192,7 @@ def combine_results(result_list):
     combined_results.SC_avg=np.mean(SC_avg_list)
     combined_results.SC_abs_avg=np.mean(SC_avg_abs_list)
     combined_results.SC_med_of_meds=np.median(SC_med_list)
-    combined_results.SC_abs_med_of_meds=np.mean(SC_abs_med_list)
+    combined_results.SC_med_of_meds_abs=np.mean(SC_med_abs_list)
     # SC std stuff
     combined_results.SC_std= calc_combined_std(SC_std_list)
     combined_results.SC_abs_std=calc_combined_std(SC_std_abs_list)
