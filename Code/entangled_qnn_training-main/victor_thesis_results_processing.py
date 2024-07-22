@@ -18,6 +18,10 @@ class Result:
         self.SC_std_list=[]
         self.SC_avg_abs_list=[]
         self.SC_std_abs_list=[]
+        # median stuff
+        self.SC_med_list=[]
+        self.SC_med_abs_list=[]
+        self.IGSD_med_list = []
         
 class Combined_Result:
     """this class contains a blue print for how you store results after you combine them for different runs or configurations
@@ -38,6 +42,13 @@ class Combined_Result:
         self.SC_std= 0
         self.SC_abs_avg= 0
         self.SC_abs_std= 0
+        # medians
+        self.TV_med = 0
+        self.FD_med = 0
+        self.IGSD_med = 0
+        self.IGSD_med_of_meds = 0
+        self.SC_med_of_meds = 0
+        self.SC_abs_med_of_meds = 0
 
 def read_results(idx, max_run_id):
     """reads in the results from the save file and puts the results into results objects
@@ -63,6 +74,7 @@ def read_results(idx, max_run_id):
                     split_line[1].replace("\n","")
                     if split_line[0]=="IGSD":
                         igsds = split_line[1].replace("[","").replace("]","").split(",")
+                        current_result.IGSD_med_list.append(np.median(igsds))
                         for igsd in igsds:
                             current_result.IGSD_list.append(float(igsd))
                     else:
@@ -139,6 +151,10 @@ def combine_results(result_list):
     SC_std_list=[]
     SC_avg_abs_list=[]
     SC_std_abs_list=[]
+    #medians
+    IGSD_med_list = []
+    SC_med_list = []
+    SC_abs_med_list = []
     #concatenate all lists
     for result in result_list: 
         combined_results.config_indices.append(result.idx) 
@@ -153,23 +169,34 @@ def combine_results(result_list):
         SC_std_list+=result.SC_std_list
         SC_avg_abs_list+=result.SC_avg_abs_list
         SC_std_abs_list+=result.SC_std_abs_list
+        IGSD_med_list += result.IGSD_med_list
+        SC_med_list += result.SC_med_list
+        SC_abs_med_list += result.SC_abs_med_list
     # TV metrics
     combined_results.TV_avg=np.mean(TV_list)
     combined_results.TV_std=np.std(TV_list)
+    combined_results.TV_med=np.median(TV_list)
     # FD metrics
     combined_results.FD_avg=np.mean(FD_list)
     combined_results.FD_std=np.std(FD_list)
+    combined_results.FD_med=np.median(FD_list)
     # IGSD metrics
     combined_results.IGSD_avg=np.mean(IGSD_list)
     combined_results.IGSD_std=np.std(IGSD_list)
+    combined_results.IGSD_med=np.median(IGSD_list)
+    combined_results.IGSD_med_of_meds=np.median(IGSD_med_list)
     # SC metrics
     combined_results.SC_pos_avg=np.mean(SC_pos_list)
     combined_results.SC_neg_avg=np.mean(SC_neg_list)
     combined_results.SC_avg=np.mean(SC_avg_list)
     combined_results.SC_abs_avg=np.mean(SC_avg_abs_list)
+    combined_results.SC_med_of_meds=np.median(SC_med_list)
+    combined_results.SC_abs_med_of_meds=np.mean(SC_abs_med_list)
     # SC std stuff
     combined_results.SC_std= calc_combined_std(SC_std_list)
     combined_results.SC_abs_std=calc_combined_std(SC_std_abs_list)
+
+
     return combined_results
 
 def print_metrics(combined_results_list, title):

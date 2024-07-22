@@ -30,7 +30,10 @@ def process_sc_metrics(SC):
     sc_abs = np.abs(sc)
     sc_avg_abs = np.mean(sc_abs)
     sc_std_abs = np.std(sc_abs)
-    return [sc_avg,sc_std,sc_pos,sc_neg,sc_abs,sc_avg_abs,sc_std_abs]
+    #add medians
+    sc_med = np.median(sc)
+    sc_med_abs = np.median(sc_abs)
+    return [sc_avg,sc_std,sc_pos,sc_neg,sc_abs,sc_avg_abs,sc_std_abs, sc_med, sc_med_abs]
 
 def process_and_store_metrics(metrics, length, conf_id, experiment_id):
     """calculates, processes and stores the metrics of given landscapes into a txt file for later evaluation
@@ -79,12 +82,16 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
         sc_abs = sc_metric[4]
         sc_avg_abs = sc_metric[5]
         sc_std_abs = sc_metric[6]
+        sc_med = sc_metric[7]
+        sc_med_abs = sc_metric[8]        
         file.write(f"SC_pos={sc_pos}\n")
         file.write(f"SC_neg={sc_neg}\n")
         file.write(f"SC_avg={sc_avg}\n")
         file.write(f"SC_std={sc_std}\n")
         file.write(f"SC_avg_abs={sc_avg_abs}\n")
-        file.write(f"SC_std_abs={sc_std_abs}\n---\n")
+        file.write(f"SC_std_abs={sc_std_abs}\n")
+        file.write(f"SC_med={sc_med}\n")
+        file.write(f"SC_med_abs={sc_med_abs}\n---\n")
     file.write("combined\n")
     file.close()
 
@@ -256,7 +263,7 @@ def run_full_experiment():
     num_qubits = 2
     num_unitaries = 5
     num_tries = 5
-    grid_size = 16
+    grid_size = 4
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
     current_time = datetime.now()
