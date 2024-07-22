@@ -44,14 +44,14 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, med_list, med_o
                 axs[i,j].plot(sample_labels, mean_list[index], linestyle='None', marker='o')
                 axs[i,j].set(ylabel=title_list[index], xlabel=x_label)
             else:   
-                axs[i,j].bar(sample_labels, neg_list, label="negative", color="cornflowerblue")
-                axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive", color="springgreen") 
+                axs[i,j].bar(sample_labels, neg_list, label="negative SC %", color="cornflowerblue")
+                axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive SC %", color="springgreen") 
                 axs[i,j].set(ylabel="% pos/neg Scalar Curvature", xlabel=x_label)
             # add median indicators
             if index >= 2 and index < 5:           
                 axs[i,j].plot(sample_labels, med_of_meds_list[index-2], linestyle='None', marker='o', color='red', label="median of medians")
             if index < 3:                
-                axs[i,j].plot(sample_labels, med_list[index], linestyle='None', marker='o', color='orange', label="median")
+                axs[i,j].plot(sample_labels, med_list[index], linestyle='None', marker='o', color='orange', label="median of all entries")
             
             axs[i,j].legend()
     plt.tight_layout()
