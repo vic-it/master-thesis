@@ -159,7 +159,7 @@ def plot_fourier_row(landscapes, titles):
         x_labels = []
         # create labels
         for i in range(length):
-            n = f"{i}"
+            n = f"{int(i-length/2)}"
             x_labels.append(n)
         y_labels = x_labels
         # do plot stuff

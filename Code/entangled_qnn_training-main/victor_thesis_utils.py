@@ -9,7 +9,7 @@ def calc_combined_std(list_of_std):
 
     Args:
         list_of_std (list): a list of standard deviations
-
+**
     Returns:
         float: combined standard deviation
     """

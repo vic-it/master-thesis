@@ -129,7 +129,7 @@ def calculate_fourier_density(
 
     """
     fourier_result = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
-
+    
     # reshape the fourier result into a vector according to the paper
     vector_fourier_result = fourier_result.reshape(-1)
 
@@ -218,3 +218,32 @@ def calc_grad_curv(landscape):
         magnitude_sum += g**2
     curv_mag = np.sqrt(magnitude_sum)
     return curv_mag
+
+def calc_fourier_frequencies_amps(landscape):
+    fourier_landscape = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
+    list_of_all_adj_freq_amps = []
+    list_of_non_zero_freq_lenghts = []
+    length = len(fourier_landscape)
+    fourier_landscape = fourier_landscape.T
+    for idx, _ in np.ndenumerate(fourier_landscape):
+        # adjust indizes to match frequencies
+        freqs =np.asarray(idx)-np.repeat(int(length/2),len(idx))
+        # get 2 norm length of frequencies
+        freq_length = get_k_norm(freqs, 2)
+        # get amplitude (2norm of real and imag parts)
+        amp = np.round(get_k_norm([fourier_landscape[idx].real,fourier_landscape[idx].imag], 2),7)    
+        list_of_all_adj_freq_amps.append(freq_length*amp)
+        if(amp > 0):
+            list_of_non_zero_freq_lenghts.append(freq_length)
+    return list_of_non_zero_freq_lenghts, list_of_all_adj_freq_amps
+
+def get_extra_fourier_metrics(landscape):
+    non_zero_freq_lengths, freq_length_amps = calc_fourier_frequencies_amps(landscape)
+    avg_nonzero_freqs = np.mean(non_zero_freq_lengths)
+    med_nonzero_freqs = np.median(non_zero_freq_lengths)
+    num_nonzero_freqs = len(non_zero_freq_lengths)
+
+    avg_length_amps = np.mean(freq_length_amps)
+    median_length_amps = np.median(freq_length_amps)
+    std_length_amps = np.std(freq_length_amps)
+    return [avg_length_amps, median_length_amps, std_length_amps, avg_nonzero_freqs, med_nonzero_freqs, num_nonzero_freqs]

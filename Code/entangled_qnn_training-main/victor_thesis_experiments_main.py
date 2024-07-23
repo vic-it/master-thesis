@@ -57,7 +57,7 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
     FD_arr = metrics[1]
     IGSD_arr = metrics[2]
     SC_metrics = metrics[3]
-
+    extra_f_metrics = metrics[4]
     # calculate and store individual sub-metric (avg, std,..)
     file = open(
         f"experimental_results/results/runs_{experiment_id}/conf_{conf_id}.txt", "a"
@@ -92,6 +92,7 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
         file.write(f"SC_std_abs={sc_std_abs}\n")
         file.write(f"SC_med={sc_med}\n")
         file.write(f"SC_med_abs={sc_med_abs}\n---\n")
+        # do extra fourier metrics stuff*
     file.write("combined\n")
     file.close()
 
@@ -229,6 +230,7 @@ def run_single_experiment_batch(
     FD_arr = []
     IGSD_arr = []
     SC_metrics = []
+    fourier_metrics = []
     for data_set in data_batch:
         landscape = generate_loss_landscape(grid_size, dimensions, data_set, U, qnn)
         TV_arr.append(calc_total_variation(landscape))
@@ -236,6 +238,7 @@ def run_single_experiment_batch(
         IGSD_arr.append(calc_IGSD(landscape))
         SC = calc_scalar_curvature(landscape)
         SC_metrics.append(process_sc_metrics(SC))
+        fourier_metrics.append(get_extra_fourier_metrics(landscape))
         del SC
         del landscape
         gc.collect()
@@ -245,6 +248,7 @@ def run_single_experiment_batch(
     metrics.append(FD_arr)
     metrics.append(IGSD_arr)
     metrics.append(SC_metrics)
+    metrics.append(fourier_metrics)
     process_and_store_metrics(metrics, len(data_batch), conf_id, experiment_id)
     now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     print(f"[{now}] Finished run: {conf_id}")
