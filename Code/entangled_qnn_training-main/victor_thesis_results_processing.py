@@ -22,7 +22,14 @@ class Result:
         self.SC_med_list=[]
         self.SC_med_abs_list=[]
         self.IGSD_med_list = []
-        
+        # extra fourier stuff        
+        self.efm_lamps_avg_list = []
+        self.efm_lamps_med_list = []
+        self.efm_lamps_std_list = []
+        self.efm_nzfreq_avg_list = []
+        self.efm_nzfreq_med_list = []
+        self.efm_nzfreq_num_list = []
+
 class Combined_Result:
     """this class contains a blue print for how you store results after you combine them for different runs or configurations
     """
@@ -49,6 +56,16 @@ class Combined_Result:
         self.IGSD_med_of_meds = 0
         self.SC_med_of_meds = 0
         self.SC_abs_med_of_meds = 0
+        # extra fourier metrics        
+        self.efm_lamps_avg = 0
+        self.efm_lamps_med_of_meds = 0
+        self.efm_lamps_std = 0
+        self.efm_nzfreq_avg = 0
+        self.efm_nzfreq_med_of_meds = 0
+        self.efm_nzfreq_std = 0
+        self.efm_nzfreq_num_avg = 0
+        self.efm_nzfreq_num_med = 0
+        self.efm_nzfreq_num_std = 0
 
 def read_results(idx, max_run_id):
     """reads in the results from the save file and puts the results into results objects
@@ -156,6 +173,13 @@ def combine_results(result_list):
     IGSD_med_list = []
     SC_med_list = []
     SC_med_abs_list = []
+    #extra fourier metrics    
+    efm_lamps_avg_list = []
+    efm_lamps_med_list = []
+    efm_lamps_std_list = []
+    efm_nzfreq_avg_list = []
+    efm_nzfreq_med_list = []
+    efm_nzfreq_num_list = []
     #concatenate all lists
     for result in result_list: 
         combined_results.config_indices.append(result.idx) 
@@ -173,6 +197,13 @@ def combine_results(result_list):
         IGSD_med_list += result.IGSD_med_list
         SC_med_list += result.SC_med_list
         SC_med_abs_list += result.SC_med_abs_list
+        #efm
+        efm_lamps_avg_list += result.efm_lamps_avg_list
+        efm_lamps_med_list += result.efm_lamps_med_list
+        efm_lamps_std_list += result.efm_lamps_std_list
+        efm_nzfreq_avg_list += result.efm_nzfreq_avg_list
+        efm_nzfreq_med_list += result.efm_nzfreq_med_list
+        efm_nzfreq_num_list += result.efm_nzfreq_num_list
     # TV metrics
     combined_results.TV_avg=np.mean(TV_list)
     combined_results.TV_std=np.std(TV_list)
@@ -196,6 +227,16 @@ def combine_results(result_list):
     # SC std stuff
     combined_results.SC_std= calc_combined_std(SC_std_list)
     combined_results.SC_abs_std=calc_combined_std(SC_std_abs_list)
+    # extra fourier metrics stuff    
+    combined_results.efm_lamps_avg = np.mean(efm_lamps_avg_list)
+    combined_results.efm_lamps_med_of_meds = np.median(efm_lamps_med_list)
+    combined_results.efm_lamps_std = calc_combined_std(efm_lamps_std_list)
+    combined_results.efm_nzfreq_avg = np.mean(efm_nzfreq_avg_list)
+    combined_results.efm_nzfreq_med_of_meds = np.median(efm_nzfreq_med_list)
+    combined_results.efm_nzfreq_std = np.std(efm_nzfreq_avg_list)
+    combined_results.efm_nzfreq_num_avg = np.mean(efm_nzfreq_num_list)
+    combined_results.efm_nzfreq_num_med = np.median(efm_nzfreq_num_list)
+    combined_results.efm_nzfreq_num_std = np.std(efm_nzfreq_num_list)
 
 
     return combined_results
@@ -222,7 +263,7 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
         title (string): title of plot
         sample_labels (list, optional): list of labels if default labels 1-4 are not correct (e.g. for data types). Defaults to range(1, 5).
     """
-    attr_list = ["TV", "FD", "IGSD", "SC", "SC_abs"]
+    attr_list = ["TV", "FD", "IGSD", "SC", "SC_abs", "efm_lamps", "efm_nzfreq", "efm_nzfreq_num"]
     combined_mean_list = []
     combined_std_list =[]
     combined_med_list = []
@@ -235,10 +276,13 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
         for res in combined_results_list:
             combined_results_mean.append(getattr(res,f"{attr_name}_avg"))
             combined_results_std.append(getattr(res,f"{attr_name}_std"))
-            if not attr_name.startswith("SC"):                
+
+            if not attr_name in ["SC","SC_abs", "efm_lamps", "efm_nzfreq"]:                
                 combined_results_med.append(getattr(res,f"{attr_name}_med"))
-            if attr_name.startswith("SC") or attr_name.startswith("IGSD"):                
+
+            if attr_name in ["SC","SC_abs","IGSD", "efm_lamps", "efm_nzfreq"]:                
                 combined_results_med_of_meds.append(getattr(res,f"{attr_name}_med_of_meds"))
+
         combined_mean_list.append(combined_results_mean)
         combined_std_list.append(combined_results_std)
         if len(combined_results_med) > 0:

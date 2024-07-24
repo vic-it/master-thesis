@@ -91,8 +91,21 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
         file.write(f"SC_avg_abs={sc_avg_abs}\n")
         file.write(f"SC_std_abs={sc_std_abs}\n")
         file.write(f"SC_med={sc_med}\n")
-        file.write(f"SC_med_abs={sc_med_abs}\n---\n")
-        # do extra fourier metrics stuff*
+        file.write(f"SC_med_abs={sc_med_abs}\n")
+        # do extra fourier metrics stuff
+        efms = extra_f_metrics[idx]
+        efm_lamps_avg = efms[0]
+        efm_lamps_med = efms[1]
+        efm_lamps_std = efms[2]
+        efm_nzfreq_avg = efms[3]
+        efm_nzfreq_med = efms[4]
+        efm_nzfreq_num = efms[5]
+        file.write(f"efm_lamps_avg={efm_lamps_avg}\n")
+        file.write(f"efm_lamps_med={efm_lamps_med}\n")
+        file.write(f"efm_lamps_std={efm_lamps_std}\n")
+        file.write(f"efm_nzfreq_avg={efm_nzfreq_avg}\n")
+        file.write(f"efm_nzfreq_med={efm_nzfreq_med}\n")
+        file.write(f"efm_nzfreq_num={efm_nzfreq_num}\n---\n")
     file.write("combined\n")
     file.close()
 
@@ -267,7 +280,7 @@ def run_full_experiment():
     num_qubits = 2
     num_unitaries = 5
     num_tries = 5
-    grid_size = 4
+    grid_size = 5
     dimensions = 6
     # generate an experiment id (based on time) to identify which results and configs belong to which experiment run
     current_time = datetime.now()

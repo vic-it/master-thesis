@@ -221,7 +221,7 @@ def calc_grad_curv(landscape):
 
 def calc_fourier_frequencies_amps(landscape):
     fourier_landscape = np.fft.fftshift(np.fft.fftn(landscape, norm="forward"))
-    list_of_all_adj_freq_amps = []
+    list_of_nonzero_adj_freq_amps = []
     list_of_non_zero_freq_lenghts = []
     length = len(fourier_landscape)
     fourier_landscape = fourier_landscape.T
@@ -231,11 +231,12 @@ def calc_fourier_frequencies_amps(landscape):
         # get 2 norm length of frequencies
         freq_length = get_k_norm(freqs, 2)
         # get amplitude (2norm of real and imag parts)
-        amp = np.round(get_k_norm([fourier_landscape[idx].real,fourier_landscape[idx].imag], 2),7)    
-        list_of_all_adj_freq_amps.append(freq_length*amp)
-        if(amp > 0):
+        amp = np.round(fourier_landscape[idx].real,9)
+        #amp = np.round(get_k_norm([fourier_landscape[idx].real,fourier_landscape[idx].imag], 2),7)
+        if(amp > 0):                
+            list_of_nonzero_adj_freq_amps.append(freq_length*amp)
             list_of_non_zero_freq_lenghts.append(freq_length)
-    return list_of_non_zero_freq_lenghts, list_of_all_adj_freq_amps
+    return list_of_non_zero_freq_lenghts, list_of_nonzero_adj_freq_amps
 
 def get_extra_fourier_metrics(landscape):
     non_zero_freq_lengths, freq_length_amps = calc_fourier_frequencies_amps(landscape)

@@ -29,29 +29,52 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, med_list, med_o
         x_label (list): labels for the x axis
         title (list): title of plot
     """
-    fig, axs = plt.subplots(3,2, figsize=(10,12))
-    title_list = ["Total Variation","Fourier Density", "Inverse Gradient Standard Deviation", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature"]
+    fig, axs = plt.subplots(5,2, figsize=(10,20))
+    title_list = ["Total Variation","Fourier Density", "Inverse Gradient Standard Deviation", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature", "nonzero Amplitude*Frequencynorm","nonzero frequencynorm avg", "nonzero frequency count", "nonzero frequency count"]
     #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     #fig.suptitle(title)
-    for i in range(3):
+    #0 "Total Variation"
+    #1 "Fourier Density"
+    #2 "Inverse Gradient Standard Deviation"
+    #3 "Scalar Curvature"
+    #4 "Absolute Scalar Curvature"
+    #5 "% positive and negative Scalar Curvature"
+    #6 "Amplitude*Frequencynorm"
+    #7 "nonzero frequency avg"
+    #8 "nonzero frequency count"
+    #9 "nonzero frequency count"
+    for i in range(5):
         for j in range(2):
             index = 2*i + j
             axs[i,j].xaxis.set_major_locator(MaxNLocator(integer=True))
             axs[i,j].set_title(title_list[index])
             #axs[i,j].set_title(title)
-            if index < 5:
-                axs[i,j].errorbar(sample_labels, mean_list[index], std_list[index], linestyle='None', marker='o', capsize=5, label="average and standard deviation")
-                axs[i,j].plot(sample_labels, mean_list[index], linestyle='None', marker='o')
+            if index != 5:
+                k = index
+                if index > 5:
+                    k -= 1
+                if index >= 8:
+                    k = 7
+                print("k",k)
+                axs[i,j].errorbar(sample_labels, mean_list[k], std_list[k], linestyle='None', marker='o', capsize=5, label="average and standard deviation")
+                #axs[i,j].plot(sample_labels, mean_list[index], linestyle='None', marker='o')
                 axs[i,j].set(ylabel=title_list[index], xlabel=x_label)
             else:   
                 axs[i,j].bar(sample_labels, neg_list, label="negative SC %", color="cornflowerblue")
                 axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive SC %", color="springgreen") 
                 axs[i,j].set(ylabel="% pos/neg Scalar Curvature", xlabel=x_label)
-            # add median indicators
-            if index >= 2 and index < 5:           
-                axs[i,j].plot(sample_labels, med_of_meds_list[index-2], linestyle='None', marker='o', color='red', label="median of medians")
-            if index < 3:                
-                axs[i,j].plot(sample_labels, med_list[index], linestyle='None', marker='o', color='orange', label="median of all entries")
+            # add median indicators for 2 3 4 6 7
+            if index in [2,3,4,6,7]:    
+                k = index - 2
+                if index >5:
+                    k -= 1
+                axs[i,j].plot(sample_labels, med_of_meds_list[k], linestyle='None', marker='o', color='red', label="median of medians")
+            if index in [0,1,2,8,9]:
+                k = index
+                if k >= 8:
+                    k = 3
+                meds = med_list[k]                    
+                axs[i,j].plot(sample_labels, meds, linestyle='None', marker='o', color='orange', label="median of all entries")
             
             axs[i,j].legend()
     plt.tight_layout()
