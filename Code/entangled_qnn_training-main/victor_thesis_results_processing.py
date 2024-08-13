@@ -29,6 +29,7 @@ class Result:
         self.efm_nzfreq_avg_list = []
         self.efm_nzfreq_med_list = []
         self.efm_nzfreq_num_list = []
+        self.efm_total_coeffs_list = []
 
 class Combined_Result:
     """this class contains a blue print for how you store results after you combine them for different runs or configurations
@@ -66,6 +67,9 @@ class Combined_Result:
         self.efm_nzfreq_num_avg = 0
         self.efm_nzfreq_num_med = 0
         self.efm_nzfreq_num_std = 0
+        self.efm_total_coeffs_avg = 0
+        self.efm_total_coeffs_med = 0
+        self.efm_total_coeffs_std = 0
 
 def read_results(idx, max_run_id):
     """reads in the results from the save file and puts the results into results objects
@@ -180,6 +184,7 @@ def combine_results(result_list):
     efm_nzfreq_avg_list = []
     efm_nzfreq_med_list = []
     efm_nzfreq_num_list = []
+    efm_total_coeffs_list = []
     #concatenate all lists
     for result in result_list: 
         combined_results.config_indices.append(result.idx) 
@@ -204,6 +209,7 @@ def combine_results(result_list):
         efm_nzfreq_avg_list += result.efm_nzfreq_avg_list
         efm_nzfreq_med_list += result.efm_nzfreq_med_list
         efm_nzfreq_num_list += result.efm_nzfreq_num_list
+        efm_total_coeffs_list += result.efm_total_coeffs_list
     # TV metrics
     combined_results.TV_avg=np.mean(TV_list)
     combined_results.TV_std=np.std(TV_list)
@@ -237,6 +243,9 @@ def combine_results(result_list):
     combined_results.efm_nzfreq_num_avg = np.mean(efm_nzfreq_num_list)
     combined_results.efm_nzfreq_num_med = np.median(efm_nzfreq_num_list)
     combined_results.efm_nzfreq_num_std = np.std(efm_nzfreq_num_list)
+    combined_results.efm_total_coeffs_avg = np.mean(efm_total_coeffs_list)
+    combined_results.efm_total_coeffs_med = np.median(efm_total_coeffs_list)
+    combined_results.efm_total_coeffs_std = np.std(efm_total_coeffs_list)
 
 
     return combined_results
@@ -263,7 +272,7 @@ def visualize_metrics(combined_results_list, x_label, title, sample_labels = ran
         title (string): title of plot
         sample_labels (list, optional): list of labels if default labels 1-4 are not correct (e.g. for data types). Defaults to range(1, 5).
     """
-    attr_list = ["TV", "FD", "IGSD", "SC", "SC_abs", "efm_lamps", "efm_nzfreq", "efm_nzfreq_num"]
+    attr_list = ["TV", "FD", "IGSD", "SC", "SC_abs", "efm_lamps", "efm_nzfreq", "efm_nzfreq_num","efm_total_coeffs"]
     combined_mean_list = []
     combined_std_list =[]
     combined_med_list = []

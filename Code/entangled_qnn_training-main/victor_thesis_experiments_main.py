@@ -100,12 +100,14 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
         efm_nzfreq_avg = efms[3]
         efm_nzfreq_med = efms[4]
         efm_nzfreq_num = efms[5]
+        efm_total_coeffs = efms[6]
         file.write(f"efm_lamps_avg={efm_lamps_avg}\n")
         file.write(f"efm_lamps_med={efm_lamps_med}\n")
         file.write(f"efm_lamps_std={efm_lamps_std}\n")
         file.write(f"efm_nzfreq_avg={efm_nzfreq_avg}\n")
         file.write(f"efm_nzfreq_med={efm_nzfreq_med}\n")
-        file.write(f"efm_nzfreq_num={efm_nzfreq_num}\n---\n")
+        file.write(f"efm_nzfreq_num={efm_nzfreq_num}\n")
+        file.write(f"efm_total_coeffs={efm_total_coeffs}\n---\n")
     file.write("combined\n")
     file.close()
 
@@ -323,7 +325,7 @@ def run_full_experiment():
     # generate configurations (5 datapoint sets = 5 runs per config)
     conf_id = 0
     # cpu_count()
-    with ProcessPoolExecutor(cpu_count()) as exe:
+    with ProcessPoolExecutor(cpu_count()-1) as exe:
         # iterate over  type of training data: 1=random, 2=orthogonal, 3=linearly dependent in H_x, 4= variable schmidt rank
         for type_of_data in range(1, 5, 1):
             num_data_points_row = []

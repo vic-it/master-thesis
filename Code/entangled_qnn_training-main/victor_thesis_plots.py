@@ -30,7 +30,7 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, med_list, med_o
         title (list): title of plot
     """
     fig, axs = plt.subplots(5,2, figsize=(10,20))
-    title_list = ["Total Variation","Fourier Density", "Inverse Gradient Standard Deviation", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature", "nonzero Amplitude*Frequencynorm","nonzero frequencynorm avg", "nonzero frequency count", "nonzero frequency count"]
+    title_list = ["Total Variation","Fourier Density", "Inverse Gradient Standard Deviation", "Scalar Curvature", "Absolute Scalar Curvature", "% positive and negative Scalar Curvature", "nonzero Amplitude*Frequencynorm","nonzero frequencynorm avg", "nonzero frequency count", "Sum of fourier coefficients"]
     #fig().gca().xaxis.set_major_locator(MaxNLocator(integer=True))
     #fig.suptitle(title)
     #0 "Total Variation"
@@ -53,26 +53,30 @@ def plot_results_metric(mean_list, std_list, pos_list, neg_list, med_list, med_o
                 k = index
                 if index > 5:
                     k -= 1
-                if index >= 8:
-                    k = 7
-                print("k",k)
+                # to remove std from the nonzero normed frequencies
+                # if index == 7:
+                #     axs[i,j].plot(sample_labels, mean_list[k], linestyle='None', marker='o', label="average and standard deviation")
+                #     axs[i,j].set(ylabel=title_list[index], xlabel=x_label)
+                # else:
                 axs[i,j].errorbar(sample_labels, mean_list[k], std_list[k], linestyle='None', marker='o', capsize=5, label="average and standard deviation")
-                #axs[i,j].plot(sample_labels, mean_list[index], linestyle='None', marker='o')
+                
                 axs[i,j].set(ylabel=title_list[index], xlabel=x_label)
+            # special bars for % pos and neg SC
             else:   
                 axs[i,j].bar(sample_labels, neg_list, label="negative SC %", color="cornflowerblue")
                 axs[i,j].bar(sample_labels, pos_list, bottom=neg_list, label="positive SC %", color="springgreen") 
                 axs[i,j].set(ylabel="% pos/neg Scalar Curvature", xlabel=x_label)
-            # add median indicators for 2 3 4 6 7
-            if index in [2,3,4,6,7]:    
+            # attributes with median of medians
+            if index in [2,3,4,6]:    
                 k = index - 2
                 if index >5:
                     k -= 1
                 axs[i,j].plot(sample_labels, med_of_meds_list[k], linestyle='None', marker='o', color='red', label="median of medians")
+            # attributes with medians
             if index in [0,1,2,8,9]:
                 k = index
                 if k >= 8:
-                    k = 3
+                    k -= 5
                 meds = med_list[k]                    
                 axs[i,j].plot(sample_labels, meds, linestyle='None', marker='o', color='orange', label="median of all entries")
             
