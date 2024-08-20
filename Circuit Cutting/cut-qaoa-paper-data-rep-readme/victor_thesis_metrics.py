@@ -2,16 +2,13 @@ import math
 import torch
 import orqviz
 import numpy as np
-#from classic_training import cost_func
-#from data import *
 import numpy as np
 from utils import *
 from victor_thesis_utils import *
-#from victor_thesis_landscapes import *
 from victor_thesis_plots import *
 from victor_thesis_metrics import *
 
-def generate_metrics(landscape):
+def calculate_metrics(landscape):
     metrics = []
     metrics.append(calc_total_variation(landscape))
     metrics.append(calc_fourier_density(landscape))

@@ -3,6 +3,7 @@ import torch
 import numpy as np
 import numpy as np
 from utils import *
+from qiskit import QuantumCircuit
 
 def calc_combined_std(list_of_std):
     """calculates combined stdv of multiple stdv values
