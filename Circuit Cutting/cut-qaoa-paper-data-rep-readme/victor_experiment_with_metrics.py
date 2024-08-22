@@ -20,53 +20,54 @@ from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable, Spectral
 from matplotlib.colors import BoundaryNorm
 
-logger = logging.getLogger(__name__)
+from victor_thesis_metrics import calculate_metrics
 
-def calc_landscape(exp_id, plot_path, sim_path, qpu_path, cmap=Spectral, levels=100, cols=None, relabel=None):
-    v_min, v_max = get_v_min_max(sim_path / 'parameter_map.csv',
-                                 'qaoa')
 
-    if cols is None:
-        cols = ['qaoa-short_1000', 'cut-qaoa_1000', 'qaoa-short_10000', 'cut-qaoa_10000']
+def clean_value(dirty_string):
+    clean_float = float(dirty_string.replace("[","").replace("]",""))
+    return clean_float
 
-    df_param_maps = pd.read_csv(qpu_path / 'param_map/parameter_map.csv', index_col=0)
+def csv_to_landscapes(csv_path):
+    df_param_maps = pd.read_csv(csv_path, index_col=0)
     df_param_maps['parameters'] = df_param_maps['parameters'].apply(lambda x: literal_eval(x))
-    df_param_maps['beta'] = df_param_maps['parameters'].apply(lambda p: p[0])
-    df_param_maps['gamma'] = df_param_maps['parameters'].apply(lambda p: p[1])
-    average(df_param_maps, cols)
-    cols_and_params = [f'{c}_avg' for c in cols]
-    value_vars = cols_and_params
-    cols_and_params.extend(['beta', 'gamma'])
-    df_params_reduced = df_param_maps[cols_and_params].copy()
-    df_params_reduced = df_params_reduced.melt(id_vars=['beta', 'gamma'], value_vars=value_vars)
-    df_params_reduced['algorithm'] = df_params_reduced['variable'].apply(lambda s: s.split('_')[0])
-    relabel_algorithms(df_params_reduced, relabel)
-    df_params_reduced['shots'] = df_params_reduced['variable'].apply(lambda s: int(s.split('_')[1]))
+    # df_param_maps['beta'] = df_param_maps['parameters'].apply(lambda p: p[0])
+    # df_param_maps['gamma'] = df_param_maps['parameters'].apply(lambda p: p[1])
+    num_columns = df_param_maps.shape[1]
+    params = df_param_maps.iloc[:,0].to_numpy()
+    df_loss_values = []
+    dimensions = len(params[0])
+    last_x_param = 0
+    landscapes_non_square = []
+    landscapes = []
+    current_landscape_rows = []
+    #fill empty landscape and current landscape rows
+    for i in range(num_columns-1):
+        current_landscape_rows.append([])
+        landscapes_non_square.append([])
+        landscapes.append([])
+        df_loss_values.append(df_param_maps.iloc[:,i+1].to_numpy())
+    #iterate over all entries, for every differend loss landscape fill a 2D array with the landscape data
+    for idx, param in enumerate(params):
+        if param[0] != last_x_param:
+            last_x_param = param[0]
+            for j in range(0,num_columns-1):
+                landscapes_non_square[j].append(current_landscape_rows[j])
+                current_landscape_rows[j] = []
+        for k in range(num_columns-1):
+            current_landscape_rows[k].append(clean_value(df_loss_values[k][idx]))
+        if idx == len(params)-1:
+            for j in range(0, num_columns-1):
+                landscapes_non_square[j].append(current_landscape_rows[j])
+    landscapes_non_square = np.array(landscapes_non_square)
+    # make landscapes square by appending landscape to itself
+    for i, landscape in enumerate(landscapes_non_square):
+        landscapes[i] = (np.concatenate((landscape, landscape), axis=0))
+    landscapes = np.array(landscapes)
+    return landscapes
 
-    min_qpu, max_qpu = df_params_reduced['value'].min(), df_params_reduced['value'].max()
 
+csv_path = "param_maps/0/aer_simulator_1660210830623176361/parameter_map.csv"
 
+landscapes = csv_to_landscapes(csv_path)
 
-
-def average(df, columns):
-    """
-    Average of columns containing a list of numbers
-    :param df: dataframe
-    :param columns:
-    """
-    for col in columns:
-        df[f'{col}_avg'] = df[col].apply(lambda values: np.average(literal_eval(values)))
-
-
-def relabel_algorithms(df, relabel):
-    if relabel is not None:
-        for old_label, new_label in relabel.items():
-            df['algorithm'] = df['algorithm'].apply(
-                lambda name: re.sub('^' + old_label + '$', new_label, name, 1))
-
-def get_v_min_max(csv_path, column):
-    df = pd.read_csv(csv_path)
-    average(df, [column])
-    column_avg = f'{column}_avg'
-    values = np.array(df[column_avg].to_list())
-    return [np.min(values), np.max(values)]
+print(calculate_metrics(landscapes[0]))
