@@ -41,7 +41,7 @@ def process_sc_metrics(SC):
     return [sc_avg,sc_std,sc_pos,sc_neg,sc_abs,sc_avg_abs,sc_std_abs, sc_med, sc_med_abs]
 
 #needs to be adapted to circuit cutting library
-def process_and_store_metrics(metrics, length, conf_id, experiment_id):
+def process_and_store_metrics(metrics,  experiment_id, name):
     """calculates, processes and stores the metrics of given landscapes into a txt file for later evaluation
        supposed to get five landscapes, corresponding to 5 different runs for the same configuration
        and unitaries but with different qubit data points
@@ -53,67 +53,64 @@ def process_and_store_metrics(metrics, length, conf_id, experiment_id):
         experiment_id (string): a string identifier for the file system to identify which experiment results and configs belong together
             contains mostly time and dimension/grid size info
     """
-    os.makedirs(f"experimental_results/results/runs_{experiment_id}", exist_ok=True)
+    os.makedirs(f"results/", exist_ok=True)
     file = open(
-        f"experimental_results/results/runs_{experiment_id}/conf_{conf_id}.txt", "w"
+        f"results/{name}_{experiment_id}.txt", "w"
     )
-    file.write(f"conf_id={conf_id}\n---\n")
+    file.write(f"conf_id={experiment_id}\n---\n")
     file.close()
-    TV_arr = metrics[0]
-    FD_arr = metrics[1]
-    IGSD_arr = metrics[2]
-    SC_metrics = metrics[3]
-    extra_f_metrics = metrics[4]
+    TV = metrics[0]
+    FD = metrics[1]
+    IGSD = metrics[2]
+    sc_metric = metrics[3]
+    efms = metrics[4]
     # calculate and store individual sub-metric (avg, std,..)
     file = open(
-        f"experimental_results/results/runs_{experiment_id}/conf_{conf_id}.txt", "a"
+        f"results/{name}_{experiment_id}.txt", "a"
     )
-    for idx in range(length):
-        file.write(f"run_{idx}\n")
-        file.write(f"TV={TV_arr[idx]}\n")
-        file.write(f"FD={FD_arr[idx]}\n")
-        igsd_string = (
-            np.array2string(IGSD_arr[idx], separator=",")
-            .replace("\n", "")
-            .replace(" ", "")
-        )
-        file.write(f"IGSD={igsd_string}\n")
-        # calculate SC sub-metrics
-        # flatten SC
-        sc_metric = SC_metrics[idx]
-        sc_avg = sc_metric[0]
-        sc_std = sc_metric[1]
-        sc_pos = sc_metric[2]
-        sc_neg = sc_metric[3]
-        sc_abs = sc_metric[4]
-        sc_avg_abs = sc_metric[5]
-        sc_std_abs = sc_metric[6]
-        sc_med = sc_metric[7]
-        sc_med_abs = sc_metric[8]        
-        file.write(f"SC_pos={sc_pos}\n")
-        file.write(f"SC_neg={sc_neg}\n")
-        file.write(f"SC_avg={sc_avg}\n")
-        file.write(f"SC_std={sc_std}\n")
-        file.write(f"SC_avg_abs={sc_avg_abs}\n")
-        file.write(f"SC_std_abs={sc_std_abs}\n")
-        file.write(f"SC_med={sc_med}\n")
-        file.write(f"SC_med_abs={sc_med_abs}\n")
-        # do extra fourier metrics stuff
-        efms = extra_f_metrics[idx]
-        efm_lamps_avg = efms[0]
-        efm_lamps_med = efms[1]
-        efm_lamps_std = efms[2]
-        efm_nzfreq_avg = efms[3]
-        efm_nzfreq_med = efms[4]
-        efm_nzfreq_num = efms[5]
-        efm_total_coeffs = efms[6]
-        file.write(f"efm_lamps_avg={efm_lamps_avg}\n")
-        file.write(f"efm_lamps_med={efm_lamps_med}\n")
-        file.write(f"efm_lamps_std={efm_lamps_std}\n")
-        file.write(f"efm_nzfreq_avg={efm_nzfreq_avg}\n")
-        file.write(f"efm_nzfreq_med={efm_nzfreq_med}\n")
-        file.write(f"efm_nzfreq_num={efm_nzfreq_num}\n")
-        file.write(f"efm_total_coeffs={efm_total_coeffs}\n---\n")
+    file.write(f"run_{name}\n")
+    file.write(f"TV={TV}\n")
+    file.write(f"FD={FD}\n")
+    igsd_string = (
+        np.array2string(IGSD, separator=",")
+        .replace("\n", "")
+        .replace(" ", "")
+    )
+    file.write(f"IGSD={igsd_string}\n")
+    # calculate SC sub-metrics
+    # flatten SC
+    sc_avg = sc_metric[0]
+    sc_std = sc_metric[1]
+    sc_pos = sc_metric[2]
+    sc_neg = sc_metric[3]
+    sc_abs = sc_metric[4]
+    sc_avg_abs = sc_metric[5]
+    sc_std_abs = sc_metric[6]
+    sc_med = sc_metric[7]
+    sc_med_abs = sc_metric[8]        
+    file.write(f"SC_pos={sc_pos}\n")
+    file.write(f"SC_neg={sc_neg}\n")
+    file.write(f"SC_avg={sc_avg}\n")
+    file.write(f"SC_std={sc_std}\n")
+    file.write(f"SC_avg_abs={sc_avg_abs}\n")
+    file.write(f"SC_std_abs={sc_std_abs}\n")
+    file.write(f"SC_med={sc_med}\n")
+    file.write(f"SC_med_abs={sc_med_abs}\n")
+    # do extra fourier metrics stuff
+    efm_lamps_avg = efms[0]
+    efm_lamps_med = efms[1]
+    efm_lamps_std = efms[2]
+    efm_nzfreq_avg = efms[3]
+    efm_nzfreq_med = efms[4]
+    efm_nzfreq_num = efms[5]
+    efm_total_coeffs = efms[6]
+    file.write(f"efm_lamps_avg={efm_lamps_avg}\n")
+    file.write(f"efm_lamps_med={efm_lamps_med}\n")
+    file.write(f"efm_lamps_std={efm_lamps_std}\n")
+    file.write(f"efm_nzfreq_avg={efm_nzfreq_avg}\n")
+    file.write(f"efm_nzfreq_med={efm_nzfreq_med}\n")
+    file.write(f"efm_nzfreq_num={efm_nzfreq_num}\n")
+    file.write(f"efm_total_coeffs={efm_total_coeffs}\n---\n")
     file.write("combined\n")
     file.close()
 

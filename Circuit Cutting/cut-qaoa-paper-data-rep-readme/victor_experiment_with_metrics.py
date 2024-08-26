@@ -20,7 +20,7 @@ from matplotlib import pyplot as plt
 from matplotlib.cm import ScalarMappable, Spectral
 from matplotlib.colors import BoundaryNorm
 
-from victor_thesis_metrics import calculate_metrics
+from victor_thesis_metrics import calculate_metrics, process_and_store_metrics
 
 
 def clean_value(dirty_string):
@@ -29,6 +29,7 @@ def clean_value(dirty_string):
 
 def csv_to_landscapes(csv_path):
     df_param_maps = pd.read_csv(csv_path, index_col=0)
+    titles = df_param_maps.columns.values[1:]
     df_param_maps['parameters'] = df_param_maps['parameters'].apply(lambda x: literal_eval(x))
     # df_param_maps['beta'] = df_param_maps['parameters'].apply(lambda p: p[0])
     # df_param_maps['gamma'] = df_param_maps['parameters'].apply(lambda p: p[1])
@@ -63,11 +64,15 @@ def csv_to_landscapes(csv_path):
     for i, landscape in enumerate(landscapes_non_square):
         landscapes[i] = (np.concatenate((landscape, landscape), axis=0))
     landscapes = np.array(landscapes)
-    return landscapes
+    return landscapes, titles
 
 
 csv_path = "param_maps/0/aer_simulator_1660210830623176361/parameter_map.csv"
 
-landscapes = csv_to_landscapes(csv_path)
-
-print(calculate_metrics(landscapes[0]))
+#calculate landscapes
+landscapes, titles = csv_to_landscapes(csv_path)
+#get metrics for individual landscapes
+metrics = calculate_metrics(landscapes[0])
+#processes and stores metrics for one landscape
+process_and_store_metrics(metrics, 0, titles[0])
+print(metrics)
